@@ -14,12 +14,13 @@ what's missing using Moose, like the XBee networking support.
 ## Rationale
 
 The reason for this unholy matrimony originates from another experiment, where
-I want to compare the optimisations of TinyOS to those of the Functional Code
-Fusion, developed in [foo-lang](https://github.com/christophevg/foo-lang). To
-do this comparison, I want comparable versions of the software running on the
-same hardware. The initial comparison was agains hand-written code, now I want
-to compare to NesC/TinyOS, so I need to layer TinyOS on top of Moose, creating
-TinyMoose ;-)
+I want to compare the optimizations of TinyOS to those of the Functional Code
+Fusion paradigm, developed for
+[foo-lang](https://github.com/christophevg/foo-lang). To do this, I want
+comparable versions of the software running on the same hardware. The initial
+comparison was against hand-written code, now I want to compare to
+NesC/TinyOS-based code, so I need to layer TinyOS on top of Moose, or vise
+versa, creating TinyMoose ;-)
 
 ## Getting started
 
