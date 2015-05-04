@@ -1,10 +1,14 @@
-PLATFORMS_DIR=../../../
+PLATFORMS_DIR=../../..
 
 INCLUDE_PATH=$(PLATFORMS_DIR)
 
 MOOSE_DIR=$(PLATFORMS_DIR)/moose
 
-MORE_SRC = 
+ifndef USE_MOOSE
+	USE_MOOSE=
+endif
+
+MORE_SRC= $(addsuffix .c, $(addprefix ${MOOSE_DIR}/, ${USE_MOOSE}))
 MORE_OBJECTS = $(patsubst %.c, %.o, $(MORE_SRC))
 
 MCU=atmega1284p

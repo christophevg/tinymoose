@@ -3,7 +3,8 @@ COMPONENT=${TARGET}C
 APP=${TARGET}AppC
 TINYOS_ROOT_DIR?=../../tinyos-main
 BUILD_DIR=build
-CC=../../nesc/tools/nescc
+CC=../../nesc/src/nesc1
+MOOSE_DIR=../../
 
 all: ${BUILD_DIR}/main.c ${BUILD_DIR}/Makefile
 	@echo "*** building ${TARGET} example..."
@@ -14,49 +15,61 @@ ${BUILD_DIR}:
 
 %/main.c: % ${COMPONENT}.nc ${APP}.nc
 	@echo "*** constructing $@ for ${TARGET} example..."
-	@${CC} -o /dev/null \
-				 -Os \
-				 -gcc=avr-gcc \
+	@${CC} -U__BLOCKS__ \
+				 -fnesc-include=deputy_nodeputy \
+				 -fnesc-gcc=avr-gcc \
+				 -mmcu=atmega128 \
+				 -DPLATFORM_MICA2 \
+				 -DIDENT_APPNAME="${APP}" \
+				 -DNESC=136 \
+				 -I/usr/local/lib/ncc \
+				 -I../../ \
+				 -I../../tinyos-main/tos/platforms/mica2 \
+				 -I../../tinyos-main/tos/platforms/mica \
+				 -I../../tinyos-main/tos/platforms/mica2/chips/cc1000 \
+				 -I../../tinyos-main/tos/chips/cc1000 \
+				 -I../../tinyos-main/tos/platforms/mica2/chips/at45db \
+				 -I../../tinyos-main/tos/platforms/mica/chips/at45db \
+				 -I../../tinyos-main/tos/chips/at45db \
+				 -I../../tinyos-main/tos/chips/atm128 \
+				 -I../../tinyos-main/tos/chips/atm128/adc \
+				 -I../../tinyos-main/tos/chips/atm128/i2c \
+				 -I../../tinyos-main/tos/chips/atm128/pins \
+				 -I../../tinyos-main/tos/chips/atm128/spi \
+				 -I../../tinyos-main/tos/chips/atm128/timer \
+				 -I../../tinyos-main/tos/lib/timer \
+				 -I../../tinyos-main/tos/lib/serial \
+				 -I../../tinyos-main/tos/lib/power \
+				 -I../../tinyos-main/tos/system \
+				 -I../../tinyos-main/tos/types \
+				 -I../../tinyos-main/tos/interfaces \
+				 -Wall \
+				 -Wshadow \
+				 -Wno-unused-but-set-variable \
+				 -Wno-enum-compare \
+				 -v \
+				 -fnesc-tmpcfile=temp.c \
+				 -fnesc-include=nesc_nx \
 				 -Wnesc-all \
 				 -fnesc-include=tos \
 				 -fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask \
-				 -fnesc-cfile=$@ \
 				 -fnesc-separator=__ \
-				 -I${TINYOS_ROOT_DIR}/tos/platforms/mica2 \
-				 -I${TINYOS_ROOT_DIR}/tos/platforms/mica \
-				 -I${TINYOS_ROOT_DIR}/tos/platforms/mica2/chips/cc1000 \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/cc1000 \
-				 -I${TINYOS_ROOT_DIR}/tos/platforms/mica2/chips/at45db \
-				 -I${TINYOS_ROOT_DIR}/tos/platforms/mica/chips/at45db \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/at45db \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128 \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/adc \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/i2c \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/pins \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/spi \
-				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/timer \
-				 -I${TINYOS_ROOT_DIR}/tos/lib/timer \
-				 -I${TINYOS_ROOT_DIR}/tos/lib/serial \
-				 -I${TINYOS_ROOT_DIR}/tos/lib/power \
-				 -I${TINYOS_ROOT_DIR}/tos/system \
-				 -I${TINYOS_ROOT_DIR}/tos/types \
-				 -I${TINYOS_ROOT_DIR}/tos/interfaces \
-				 -mmcu=atmega128 \
 				 -fnesc-target=avr \
 				 -fnesc-no-debug \
-				 -DPLATFORM_MICA2 \
-				 -Wall \
-				 -Wshadow \
-				 --param max-inline-insns-single=100000 \
-				 -Wno-unused-but-set-variable \
-				 -Wno-enum-compare \
-				 -DIDENT_APPNAME=\"${APP}\" \
-				 ${APP}.nc \
-				 -lm
+				${APP}.nc \
+				-o $@ > .nesc.generation.log 2>&1
 
 %/Makefile: %
 	@echo "*** adding Makefile to build ${TARGET} example..."
-	@echo "include ../../Makefile.include" > $@
+	@echo "USE_MOOSE=avr serial" > $@
+	@echo "include ../../Makefile.include" >> $@
 
 clean:
 	@rm -rf ${BUILD_DIR}
+
+											
+											
+											
+											
+											
+											

@@ -33,7 +33,15 @@ $ make
 make: `all' is up to date.
 ```
 
-## Hello TinyMoose
+## Examples
+
+Every example builds from a single `make` command. It uses `nesc1` to generate
+the single C file that contains everything. Next, it uses Moose's build
+infrastructure to build it.
+
+The output of `nesc1` is caught in `.nesc.generation.log`.
+
+### Hello TinyMoose
 
 ```bash
 $ cd src/hello/
@@ -46,6 +54,8 @@ $ make
 ../../tinyos-main/tos/chips/atm128/atm128hardware.h:92:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
 ../../tinyos-main/tos/chips/atm128/atm128hardware.h:92:23: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
 ../../tinyos-main/tos/chips/atm128/atm128hardware.h:88:23: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+--- compiling ../../../moose/avr.c
+--- compiling ../../../moose/serial.c
 --- linking main.elf
 --- creating HEX image
 --- creating EEPROM
@@ -54,9 +64,9 @@ $ make
 
 main.elf  :
 section         size      addr
-.data             12   8388864
-.text           3710         0
-.bss              11   8388876
+.data             26   8388864
+.text           3942         0
+.bss              11   8388890
 .stab            540         0
 .stabstr         189         0
 .comment          17         0
@@ -64,6 +74,5 @@ section         size      addr
 .debug_abbrev   1833         0
 .debug_line       29         0
 .debug_str       662         0
-Total           8941
-
+Total           9187
 ```
