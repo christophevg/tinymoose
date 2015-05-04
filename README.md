@@ -1,15 +1,25 @@
 # TinyMoose
 
-An experiment on integrating Moose and TinyOS  
+An experiment on integrating [Moose](https://github.com/christophevg/moose) and [TinyOS](https://github.com/tinyos/tinyos-main)  
 Christophe VG <contact@christophe.vg>  
 [https://github.com/christophevg/tinymoose](https://github.com/christophevg/tinymoose)
 
 ## Introduction
 
 So far, I've been implementing my own hardware abstraction layer on top of the
-Atmel family of mcu's. With this experiment, I'm trying to run TinyOS on my own
-hardware, implementing what's missing using Moose, like the XBee networking
-support.
+Atmel family of mcu's, called [Moose](https://github.com/christophevg/moose).
+With this experiment, I'm trying to run TinyOS on my own hardware, implementing
+what's missing using Moose, like the XBee networking support.
+
+## Rationale
+
+The reason for this unholy matrimony originates from another experiment, where
+I want to compare the optimisations of TinyOS to those of the Functional Code
+Fusion, developed in [foo-lang](https://github.com/christophevg/foo-lang). To
+do this comparison, I want comparable versions of the software running on the
+same hardware. The initial comparison was agains hand-written code, now I want
+to compare to NesC/TinyOS, so I need to layer TinyOS on top of Moose, creating
+TinyMoose ;-)
 
 ## Getting started
 
