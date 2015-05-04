@@ -1,0 +1,28 @@
+PLATFORMS_DIR=../../../
+
+INCLUDE_PATH=$(PLATFORMS_DIR)
+
+MOOSE_DIR=$(PLATFORMS_DIR)/moose
+
+MORE_SRC = 
+MORE_OBJECTS = $(patsubst %.c, %.o, $(MORE_SRC))
+
+MCU=atmega1284p
+F_CPU=8000000
+
+AVRDUDE_PROGRAMMER=jtag2
+
+include $(MOOSE_DIR)/Makefile
+
+clean: clean_avr clean_more_objects
+
+clean_avr:
+	@(cd $(MOOSE_DIR); $(MAKE) clean)
+
+clean_more_objects:
+	@rm -f $(MORE_OBJECTS)
+
+# setup and control targets
+
+fuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xE2:m
