@@ -1,7 +1,12 @@
-all: moose/Makefile
-	@echo "Take a look at the src folder and try building an example."
+all: init
+	
+init: moose/Makefile nesc/tools/nescc
 
 moose/Makefile:
-	@echo "*** initializing and updating moose submodule"
+	@echo "*** initializing and updating moose submodules..."
 	@git submodule init
 	@git submodule update
+
+nesc/tools/nescc:
+	@echo "*** building NesC..."
+	@(cd nesc; ./Bootstrap && ./configure && make && chmod +x tools/nescc) > .nesc.build.log 2>&1

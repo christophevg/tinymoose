@@ -1,3 +1,9 @@
 [submodule "moose"]
 	path = moose
 	url = git@github.com:christophevg/moose.git
+[submodule "nesc"]
+	path = nesc
+	url = https://github.com/tinyos/nesc
+[submodule "tinyos-main"]
+	path = tinyos-main
+	url = https://github.com/tinyos/tinyos-main

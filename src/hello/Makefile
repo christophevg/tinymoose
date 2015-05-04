@@ -1,8 +1,9 @@
 TARGET=Hello
 COMPONENT=${TARGET}C
 APP=${TARGET}AppC
-TINYOS_ROOT_DIR?=/Users/xtof/Workspace/tinyos-main
+TINYOS_ROOT_DIR?=../../tinyos-main
 BUILD_DIR=build
+CC=../../nesc/tools/nescc
 
 all: ${BUILD_DIR}/app.c
 
@@ -10,7 +11,7 @@ ${BUILD_DIR}:
 	mkdir -p ${BUILD_DIR}
 
 %/app.c: % ${COMPONENT}.nc ${APP}.nc
-	nescc -o /dev/null \
+	${CC} -o /dev/null \
 				-Os \
 				-gcc=avr-gcc \
 				-Wnesc-all \
