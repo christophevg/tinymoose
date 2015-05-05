@@ -167,7 +167,7 @@ total 392
 
 Using the Moose-based `Makefile` a `main.hex` is already compiled, which we now can use to program the hardware.
 
-_Mind that you'll have to fiddle a bit with some environment variables to get the right port for avrdude. Take a look at the [Makefile](moose/Makefile) in the Moose folder._
+_Mind that you'll have to fiddle a bit with some environment variables to get the right port for avrdude. Take a look at the [Makefile](https://github.com/christophevg/moose/blob/master/Makefile) in the Moose folder._
 
 ```bash
 $ make program
