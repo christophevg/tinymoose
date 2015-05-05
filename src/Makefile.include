@@ -16,6 +16,8 @@ F_CPU=8000000
 
 AVRDUDE_PROGRAMMER=jtag2
 
+MORE_CDEFS+=-DSERIAL_ON_USART1
+
 include $(MOOSE_DIR)/Makefile
 
 clean: clean_avr clean_more_objects
@@ -30,3 +32,9 @@ clean_more_objects:
 
 fuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xE2:m
+
+serial-digitus:
+	screen /dev/tty.usbserial-FTSJ84AI 9600
+
+serial-logilink:
+	screen /dev/tty.usbserial 9600

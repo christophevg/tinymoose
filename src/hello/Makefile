@@ -1,10 +1,16 @@
 TARGET=Hello
 COMPONENT=${TARGET}C
 APP=${TARGET}AppC
-TINYOS_ROOT_DIR?=../../tinyos-main
+
 BUILD_DIR=build
-CC=../../nesc/src/nesc1
-MOOSE_DIR=../../
+
+NESC_DIR=../../nesc
+TINYOS_ROOT_DIR=../../tinyos-main
+TINYOS_CONTRIB_DIR=../../tinyos-contrib
+MOOSE_DIR=../..
+
+CC=${NESC_DIR}/src/nesc1
+
 
 all: ${BUILD_DIR}/main.c ${BUILD_DIR}/Makefile
 	@echo "*** building ${TARGET} example..."
@@ -18,37 +24,41 @@ ${BUILD_DIR}:
 	@${CC} -U__BLOCKS__ \
 				 -fnesc-include=deputy_nodeputy \
 				 -fnesc-gcc=avr-gcc \
-				 -mmcu=atmega128 \
-				 -DPLATFORM_MICA2 \
+				 -mmcu=atmega1284p \
+				 -DATM128_I2C_EXTERNAL_PULLDOWN=TRUE \
+				 -DPLATFORM_RAVEN \
 				 -DIDENT_APPNAME="${APP}" \
 				 -DNESC=136 \
-				 -I/usr/local/lib/ncc \
-				 -I../../ \
-				 -I../../tinyos-main/tos/platforms/mica2 \
-				 -I../../tinyos-main/tos/platforms/mica \
-				 -I../../tinyos-main/tos/platforms/mica2/chips/cc1000 \
-				 -I../../tinyos-main/tos/chips/cc1000 \
-				 -I../../tinyos-main/tos/platforms/mica2/chips/at45db \
-				 -I../../tinyos-main/tos/platforms/mica/chips/at45db \
-				 -I../../tinyos-main/tos/chips/at45db \
-				 -I../../tinyos-main/tos/chips/atm128 \
-				 -I../../tinyos-main/tos/chips/atm128/adc \
-				 -I../../tinyos-main/tos/chips/atm128/i2c \
-				 -I../../tinyos-main/tos/chips/atm128/pins \
-				 -I../../tinyos-main/tos/chips/atm128/spi \
-				 -I../../tinyos-main/tos/chips/atm128/timer \
-				 -I../../tinyos-main/tos/lib/timer \
-				 -I../../tinyos-main/tos/lib/serial \
-				 -I../../tinyos-main/tos/lib/power \
-				 -I../../tinyos-main/tos/system \
-				 -I../../tinyos-main/tos/types \
-				 -I../../tinyos-main/tos/interfaces \
+				 -I${NESC_DIR}/tools \
+				 -I${MOOSE_DIR} \
+				 -I${TINYOS_CONTRIB_DIR}/tos/platforms/raven \
+				 -I${TINYOS_CONTRIB_DIR}/tos/platforms/raven/chips/rf230 \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/rf230 \
+				 -I${TINYOS_CONTRIB_DIR}/tos/chips/atm1284 \
+				 -I${TINYOS_CONTRIB_DIR}/tos/chips/atm1284/adc \
+				 -I${TINYOS_CONTRIB_DIR}/tos/chips/atm1284/pins \
+				 -I${TINYOS_CONTRIB_DIR}/tos/chips/atm1284/i2c \
+				 -I${TINYOS_CONTRIB_DIR}/tos/chips/atm1284/timer \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128 \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/adc \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/pins \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/spi \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/i2c \
+				 -I${TINYOS_ROOT_DIR}/tos/chips/atm128/timer \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/timer \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/serial \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/power \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/diagmsg \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/rfxlink/layers \
+				 -I${TINYOS_ROOT_DIR}/tos/lib/rfxlink/util \
+				 -I${TINYOS_ROOT_DIR}/tos/system \
+				 -I${TINYOS_ROOT_DIR}/tos/types \
+				 -I${TINYOS_ROOT_DIR}/tos/interfaces \
 				 -Wall \
 				 -Wshadow \
 				 -Wno-unused-but-set-variable \
 				 -Wno-enum-compare \
-				 -v \
-				 -fnesc-tmpcfile=temp.c \
+				 -fnesc-tmpcfile=temp.c\
 				 -fnesc-include=nesc_nx \
 				 -Wnesc-all \
 				 -fnesc-include=tos \
@@ -56,8 +66,9 @@ ${BUILD_DIR}:
 				 -fnesc-separator=__ \
 				 -fnesc-target=avr \
 				 -fnesc-no-debug \
-				${APP}.nc \
-				-o $@ > .nesc.generation.log 2>&1
+				 ${APP}.nc \
+				 -o $@ \
+				 -v > .nesc.generation.log 2>&1
 
 %/Makefile: %
 	@echo "*** adding Makefile to build ${TARGET} example..."

@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#include "moose/avr.h"
 #include "moose/serial.h"
 
 module HelloC{

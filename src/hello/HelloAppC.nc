@@ -1,6 +1,4 @@
-configuration HelloAppC{
-
-}
+configuration HelloAppC {}
 
 implementation{ 
 	components HelloC, MainC;
