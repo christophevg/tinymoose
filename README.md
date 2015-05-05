@@ -167,7 +167,7 @@ total 392
 
 Using the Moose-based `Makefile` a `main.hex` is already compiled, which we now can use to program the hardware.
 
-_Mind that you'll have to fiddle a bit with some environment variables to get the right port for avrdude. Take a look at the [Makefile](moose/Makfile) in the Moose folder._
+_Mind that you'll have to fiddle a bit with some environment variables to get the right port for avrdude. Take a look at the [Makefile](moose/Makefile) in the Moose folder._
 
 ```bash
 $ make program
@@ -183,3 +183,5 @@ If you now hook up the hardware to a serial to USB adapter and issue a screen to
 <p align="center">
 <img src="media/hello-world.png">
 </p>
+
+_More to come soon..._
