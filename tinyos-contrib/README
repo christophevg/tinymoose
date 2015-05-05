@@ -1,0 +1,11 @@
+This contrib directory contains a port of the Raven platform originally written
+by Martin Cerveny. The original sources were taken from the tinyos-2.x-contrib
+repository at https://github.com/tyll/tinyos-2.x-contrib/blob/master/mc/raven.
+
+This port contains support for the Atmega1284p, which is used in the hardware
+used for the TinyMoose experiment.
+
+To add this contrib to the main TinyOS repository, simply copy the files using
+the following command from the root of the repository:
+
+  $ cp -rv tinyos-contrib/ tinyos-main/

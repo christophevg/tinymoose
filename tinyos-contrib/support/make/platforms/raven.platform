@@ -1,0 +1,27 @@
+PFLAGS += -I%T/platforms/raven
+PFLAGS += -I%T/platforms/raven/chips/rf230
+PFLAGS += -I%T/chips/rf230
+PFLAGS += -I%T/chips/atm1284
+PFLAGS += -I%T/chips/atm1284/adc
+PFLAGS += -I%T/chips/atm1284/pins
+PFLAGS += -I%T/chips/atm1284/i2c
+PFLAGS += -I%T/chips/atm1284/timer
+PFLAGS += -I%T/chips/atm128
+PFLAGS += -I%T/chips/atm128/adc
+PFLAGS += -I%T/chips/atm128/pins
+PFLAGS += -I%T/chips/atm128/spi
+PFLAGS += -I%T/chips/atm128/i2c
+PFLAGS += -I%T/chips/atm128/timer
+PFLAGS += -I%T/lib/timer
+PFLAGS += -I%T/lib/serial
+PFLAGS += -I%T/lib/power
+PFLAGS += -I%T/lib/diagmsg
+PFLAGS += -I%T/lib/rfxlink/layers
+PFLAGS += -I%T/lib/rfxlink/util
+
+PFLAGS += -mmcu=atmega1284p
+PFLAGS += -fnesc-target=avr
+PFLAGS += -fnesc-no-debug
+PFLAGS += -DATM128_I2C_EXTERNAL_PULLDOWN=TRUE
+
+$ENV{'CIL_MACHINE'} =
