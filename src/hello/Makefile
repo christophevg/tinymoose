@@ -10,6 +10,8 @@ TINYOS_CONTRIB_DIR=../../tinyos-contrib
 MOOSE_DIR=../..
 
 CC=${NESC_DIR}/src/nesc1
+GENERATION_LOG=.nesc.generation.log
+DONGLE=digitus
 
 
 all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
@@ -20,7 +22,7 @@ all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 
 %/serial: % %/Makefile
 	@echo "*** showing serial console... (press 'Ctrl+a k' to kill the screen)"
-	@(cd ${BUILD_DIR}; make serial-digitus)
+	@(cd $<; make serial-${DONGLE})
 
 %/main.hex: % %/main.c %/Makefile
 	@echo "*** building $@..."
@@ -75,7 +77,7 @@ all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 				 -fnesc-no-debug \
 				 ${APP}.nc \
 				 -o $@ \
-				 -v > .nesc.generation.log 2>&1
+				 -v > ${GENERATION_LOG} 2>&1
 
 %/Makefile: %
 	@echo "*** adding Makefile..."
@@ -87,5 +89,6 @@ ${BUILD_DIR}:
 
 clean:
 	@rm -rf ${BUILD_DIR}
+	@rm -f ${GENERATION_LOG}
 
 .PRECIOUS: ${BUILD_DIR}/main.c ${BUILD_DIR}/main.hex ${BUILD_DIR}/Makefile
