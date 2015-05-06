@@ -12,15 +12,22 @@ MOOSE_DIR=../..
 CC=${NESC_DIR}/src/nesc1
 
 
-all: ${BUILD_DIR}/main.c ${BUILD_DIR}/Makefile
-	@echo "*** building ${TARGET} example..."
-	@(cd ${BUILD_DIR}; make)
+all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
+	
+%/program: % %/main.hex %/Makefile
+	@echo "*** programming device..."
+	@(cd $<; make program)
 
-${BUILD_DIR}:
-	@mkdir -p ${BUILD_DIR}
+%/serial: % %/Makefile
+	@echo "*** showing serial console... (press 'Ctrl+a k' to kill the screen)"
+	@(cd ${BUILD_DIR}; make serial-digitus)
+
+%/main.hex: % %/main.c %/Makefile
+	@echo "*** building $@..."
+	@(cd $<; make)
 
 %/main.c: % ${COMPONENT}.nc ${APP}.nc
-	@echo "*** constructing $@ for ${TARGET} example..."
+	@echo "*** generating $@..."
 	@${CC} -U__BLOCKS__ \
 				 -fnesc-include=deputy_nodeputy \
 				 -fnesc-gcc=avr-gcc \
@@ -71,16 +78,14 @@ ${BUILD_DIR}:
 				 -v > .nesc.generation.log 2>&1
 
 %/Makefile: %
-	@echo "*** adding Makefile to build ${TARGET} example..."
+	@echo "*** adding Makefile..."
 	@echo "USE_MOOSE=avr serial" > $@
 	@echo "include ../../Makefile.include" >> $@
+
+${BUILD_DIR}:
+	@mkdir -p ${BUILD_DIR}
 
 clean:
 	@rm -rf ${BUILD_DIR}
 
-											
-											
-											
-											
-											
-											
+.PRECIOUS: ${BUILD_DIR}/main.c ${BUILD_DIR}/main.hex ${BUILD_DIR}/Makefile
