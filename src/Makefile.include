@@ -31,7 +31,10 @@ clean_more_objects:
 # setup and control targets
 
 fuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xE2:m
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xe2:m -U hfuse:w:0x19:m -U efuse:w:0xf9:m
+
+read-fuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:r:low_fuse_val.hex:h -U hfuse:r:high_fuse_val.hex:h -U efuse:r:ext_fuse_val.hex:h
 
 serial-digitus:
 	screen /dev/tty.usbserial-FTSJ84AI 9600
