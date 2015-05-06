@@ -84,7 +84,8 @@ implementation
 
 	/* Setup timer2 to count 32 jiffies, and timer1 cpu cycles */
 	TCCR1B = 1 << CS10;
-	ASSR = 1 << AS2;
+  // TinyMoose change: our hardware doesn't have an external crystal
+  // ASSR = 1 << AS2;
 	TCCR2B = 1 << CS21 | 1 << CS20;
 
 	/* Wait for 1s for counter to stablilize after power-up (yes, it
