@@ -41,7 +41,11 @@ The code of this port is located in the [tinyos-contrib](tinyos-contrib) folder 
 
 ## Hardware
 
-_Coming soon..._
+I like to keep things minimal, at least at first, and this also applies to the first set of examples of TinyMoose: an ATMEGA1284p, programmable through JTAG and an RS232 interface through a MAX(3)232 for interacting with our newfound minimalistic computer.
+
+<p align="center">
+<a href="http://123d.circuits.io/circuits/785257"><img src="media/circuit.png" target="_blank"></a>
+</p>
 
 ## Examples
 
