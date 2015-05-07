@@ -188,4 +188,73 @@ If you now hook up the hardware to a serial to USB adapter and issue a screen to
 <img src="media/hello-world.png">
 </p>
 
+### Echo
+
+Oh, well, so far for the minimalistic approach. Let's add the network. The hardware I actually talked about before are the motes I designed for my master's thesis: the XT0F-004. It extends the previous very basic setup with an XBee ZigBee module (and a few LEDs, reset switch and a light sensor:
+
+<p align="center">
+<img src="media/xt0f-004.jpg" width="724">
+</p>
+
+<p align="center">
+<a href="http://123d.circuits.io/circuits/786196"><img src="media/xt0f-004-circuit.png" target="_blank"></a>
+</p>
+
+(yeah, I know, the reset switch isn't showing in the diagram)
+
+So it's time to implement some interfaces, namely, the `Send` and `Receive` interfaces, provided by TinyOS:
+
+```c
+interface Send {
+  // Send a packet with a data payload of len.
+  command error_t send(message_t* msg, uint8_t len);
+  // Cancel a requested transmission.
+  command error_t cancel(message_t* msg);
+  // Signal in response to an accepted send request.
+  event void sendDone(message_t* msg, error_t error);
+  // Return the maximum payload length that this communication layer can provide.
+  command uint8_t maxPayloadLength();
+  // Return a pointer to a protocol's payload region in a packet which has at least a certain length.
+  command void* getPayload(message_t* msg, uint8_t len);
+}
+```
+
+```c
+interface Receive {
+  // Receive a packet buffer, returning a buffer for the signaling
+  // component to use for the next reception.
+  event message_t* receive(message_t* msg, void* payload, uint8_t len);
+}
+```
+
+Moose has the following functions to deal with the XBee radio:
+
+```c
+// send an XBee formatted frame/packet
+void xbee_send(xbee_tx_t *frame);
+// register a handler for received packets
+void xbee_on_receive(xbee_rx_handler_t handler);
+// request to process (optionally aka non blocking) received packets
+void xbee_receive(void);
+```
+
+TinyOS has an extended `message_t` structure in place, nicely described in `tep111`. It boils down to the following definition:
+
+```c
+#ifndef TOSH_DATA_LENGTH
+#define TOSH_DATA_LENGTH 28
+#endif
+
+typedef nx_struct message_t {
+  nx_uint8_t header[sizeof(message_header_t)];
+  nx_uint8_t data[TOSH_DATA_LENGTH];
+  nx_uint8_t footer[sizeof(message_footer_t)];
+  nx_uint8_t metadata[sizeof(message_metadata_t)];
+} message_t;
+```
+
+`message_header_t`, `message_footer_t` and `message_metadata_t` SHOULD be opaque types, which means we SHOULD provide a component with an interface that enables retrieval of all components.
+
+
+
 _More to come soon..._
