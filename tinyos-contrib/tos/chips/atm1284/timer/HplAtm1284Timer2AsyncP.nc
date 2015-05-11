@@ -266,7 +266,8 @@ implementation
   }
 
   async command void TimerAsync.setTimer2Asynchronous() {
-    ASSR |= 1 << AS2;
+    // TinyMoose change: our hardware doesn't have an external crystal
+    // ASSR |= 1 << AS2;
   }
 
   async command int TimerAsync.controlABusy() {
