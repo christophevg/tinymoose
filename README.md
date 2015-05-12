@@ -188,7 +188,7 @@ If you now hook up the hardware to a serial to USB adapter and issue a screen to
 <img src="media/hello-world.png">
 </p>
 
-### Echo
+### Greetings
 
 Oh, well, so far for the minimalistic approach. Let's add the network. The hardware I actually talked about before are the motes I designed for my master's thesis: the XT0F-004. It extends the previous very basic setup with an XBee ZigBee module (and a few LEDs, reset switch and a light sensor:
 
@@ -200,9 +200,9 @@ Oh, well, so far for the minimalistic approach. Let's add the network. The hardw
 <a href="http://123d.circuits.io/circuits/786196"><img src="media/xt0f-004-circuit.png" target="_blank"></a>
 </p>
 
-(yeah, I know, the reset switch isn't showing in the diagram)
+(yeah, I know, the reset switch and light sensor aren't included in the diagram)
 
-So it's time to implement some interfaces, namely, the `Send` and `Receive` interfaces, provided by TinyOS:
+So it's time to implement some interfaces. For example the `Send` and `Receive` interfaces, provided by TinyOS:
 
 ```c
 interface Send {
@@ -238,7 +238,7 @@ void xbee_on_receive(xbee_rx_handler_t handler);
 void xbee_receive(void);
 ```
 
-TinyOS has an extended `message_t` structure in place, nicely described in `tep111`. It boils down to the following definition:
+TinyOS has an extended `message_t` structure in place, nicely described in `tep111` and defined in `message.h`. It boils down to the following definition:
 
 ```c
 #ifndef TOSH_DATA_LENGTH
@@ -253,8 +253,147 @@ typedef nx_struct message_t {
 } message_t;
 ```
 
-`message_header_t`, `message_footer_t` and `message_metadata_t` SHOULD be opaque types, which means we SHOULD provide a component with an interface that enables retrieval of all components.
+`message_header_t`, `message_footer_t` and `message_metadata_t` SHOULD be opaque types, which means we SHOULD provide a component with an interface that enables retrieval of all included fields.
 
+#### xbee_receive()
 
+Moose is based on the concept of an [event loop](http://en.wikipedia.org/wiki/Event_loop), which has to contain a call to `xbee_receive`. This function will check if incoming messages are available and dispatch them to the handler(s) that have been registered using `xbee_on_receive`.
+
+Since TinyOS doesn't provide us access to this, we will have to implement this repetitive task differently, using a task scheduled using a timer (see also `tep06`):
+
+```c
+#include "Timer.h"
+#include "moose/xbee.h"
+
+module ReceiveTaskC {
+  uses interface Boot;
+  uses interface Timer<TMilli> as Timer0;
+}
+
+implementation {
+  event void Boot.booted() {
+    call Timer0.startPeriodic(50);
+  }
+
+  task void receive() {
+    xbee_receive();
+  }
+
+  event void Timer0.fired() {
+    post receive();
+  }
+}
+```
+
+But that's only part of the solution...
+
+#### Introducing the XBee Module
+
+Let's extend the `ReceiveTaskC` module and add our own `SimpleReceive` and `SimpleSend` interfaces, creating the `XBee` module.
+
+```c
+module XBeeC {
+  provides interface SimpleSend;
+  provides interface SimpleReceive;
+
+  uses interface Boot;
+  uses interface Timer<TMilli> as Timer0;
+}
+```
+
+`SimpleSend` defines
+
+```c
+#include <TinyError.h>
+
+interface SimpleSend {
+  command error_t send(uint8_t *bytes, uint8_t size);
+}
+```
+
+and `SimpleReceive` defines
+
+```c
+interface SimpleReceive {
+  event void received(uint8_t *bytes, uint8_t size);
+}
+```
+
+`XBee` implements `SimpleSend.send` and signals `SimpleReceive.received`
+
+```c
+  command error_t SimpleSend.send(uint8_t *bytes, const uint8_t size) {
+    xbee_tx_t frame;
+
+    frame.size        = size;
+    frame.id          = XB_TX_NO_RESPONSE;
+    frame.address     = XB_COORDINATOR;
+    frame.nw_address  = XB_NW_ADDR_UNKNOWN;
+    frame.radius      = XB_MAX_RADIUS;
+    frame.options     = XB_OPT_NONE;
+    frame.data        = bytes;
+
+    xbee_send(&frame);
+    
+    return SUCCESS;
+  }
+  ...
+  void handle_frame(xbee_rx_t *frame) {
+    signal SimpleReceive.received(frame->data, frame->size);
+  }
+```
+
+To act on the signal, `SimpleReceiver` simply dumps the received data
+
+```c
+module SimpleReceiver {
+  uses interface SimpleReceive;
+}
+
+implementation {
+  event void SimpleReceive.received(uint8_t *bytes, const uint8_t size) {
+    int i;
+    printf("received %d bytes : ", size);
+    for(i=0; i<size; i++) {
+      printf("%c", bytes[i]);
+    }
+    printf("\n");
+  }
+}
+```
+
+All together, we can now implement bi-directional network-based communication in the `GreetAppC`
+
+```c
+configuration GreetAppC {}
+
+implementation{ 
+  components MooseC, XBeeC, MainC, SimpleReceiver;
+  components new TimerMilliC() as Timer0;
+
+  MooseC.Boot  -> MainC.Boot;
+
+  XBeeC.Boot   -> MainC.Boot;
+  XBeeC.Timer0 -> Timer0;
+
+  SimpleReceiver.SimpleReceive -> XBeeC.SimpleReceive;
+}
+```
+
+To run it, we flash the example to the device using `make`, which spawns a `screen` showing the output of the app on the serial connection.
+
+<p align="center">
+<img src="media/greet-child.png">
+</p>
+
+Next we hook up another XBee in coordinator mode using an explorer board and use the example python script `coordinate.py` to dump the received frames and send back a greeting to the child...
+
+<p align="center">
+<img src="media/greet-parent.png">
+</p>
+
+<p align="center">
+<img src="media/greet-setup.jpg" width="724">
+</p>
 
 _More to come soon..._
