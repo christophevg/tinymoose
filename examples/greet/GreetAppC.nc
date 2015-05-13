@@ -1,7 +1,7 @@
 configuration GreetAppC {}
 
 implementation{ 
-  components MooseC, XBeeC, SimpleReceiverC, MainC;
+  components MooseC, XBeeC, GreeterC, MainC;
   components new TimerMilliC() as Timer0;
 
   MooseC.Boot  -> MainC.Boot;
@@ -9,5 +9,6 @@ implementation{
   XBeeC.Boot   -> MainC.Boot;
   XBeeC.Timer0 -> Timer0;
 
-  SimpleReceiverC.SimpleReceive -> XBeeC.SimpleReceive;
+  GreeterC.SimpleSend    -> XBeeC.SimpleSend;
+  GreeterC.SimpleReceive -> XBeeC.SimpleReceive;
 }

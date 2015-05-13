@@ -307,6 +307,7 @@ module XBeeC {
 #include <TinyError.h>
 
 interface SimpleSend {
+  event void ready(void);
   command error_t send(uint8_t *bytes, uint8_t size);
 }
 ```
@@ -319,20 +320,21 @@ interface SimpleReceive {
 }
 ```
 
-`XBee` implements `SimpleSend.send` and signals `SimpleReceive.received`
+`XBeeC` implements `SimpleSend.send` and signals `SimpleReceive.received`:
 
 ```c
+module XBeeC {
+  provides interface SimpleSend;
+  provides interface SimpleReceive;
+
+  uses interface Boot;
+  uses interface Timer<TMilli> as Timer0;
+}
+
+implementation {
+  ...
   command error_t SimpleSend.send(uint8_t *bytes, const uint8_t size) {
-    xbee_tx_t frame;
-
-    frame.size        = size;
-    frame.id          = XB_TX_NO_RESPONSE;
-    frame.address     = XB_COORDINATOR;
-    frame.nw_address  = XB_NW_ADDR_UNKNOWN;
-    frame.radius      = XB_MAX_RADIUS;
-    frame.options     = XB_OPT_NONE;
-    frame.data        = bytes;
-
+    ...
     xbee_send(&frame);
     
     return SUCCESS;
@@ -341,34 +343,22 @@ interface SimpleReceive {
   void handle_frame(xbee_rx_t *frame) {
     signal SimpleReceive.received(frame->data, frame->size);
   }
-```
-
-To act on the signal, `SimpleReceiver` simply dumps the received data
-
-```c
-module SimpleReceiver {
-  uses interface SimpleReceive;
-}
-
-implementation {
-  event void SimpleReceive.received(uint8_t *bytes, const uint8_t size) {
-    int i;
-    printf("received %d bytes : ", size);
-    for(i=0; i<size; i++) {
-      printf("%c", bytes[i]);
-    }
-    printf("\n");
+  ...
+  event void Boot.booted() {
+    ...
+    xbee_on_receive(handle_frame);
+    ...
+    signal SimpleSend.ready();
   }
-}
 ```
 
-All together, we can now implement bi-directional network-based communication in the `GreetAppC`
+The only thing left to do is create a top-level App configuration, `GreetAppC`:
 
 ```c
 configuration GreetAppC {}
 
 implementation{ 
-  components MooseC, XBeeC, MainC, SimpleReceiver;
+  components MooseC, XBeeC, GreeterC, MainC;
   components new TimerMilliC() as Timer0;
 
   MooseC.Boot  -> MainC.Boot;
@@ -376,7 +366,8 @@ implementation{
   XBeeC.Boot   -> MainC.Boot;
   XBeeC.Timer0 -> Timer0;
 
-  SimpleReceiver.SimpleReceive -> XBeeC.SimpleReceive;
+  GreeterC.SimpleSend    -> XBeeC.SimpleSend;
+  GreeterC.SimpleReceive -> XBeeC.SimpleReceive;
 }
 ```
 

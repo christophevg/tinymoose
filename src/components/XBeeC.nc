@@ -30,11 +30,6 @@ implementation{
     
     return SUCCESS;
   }
-
-  // helper function wrapping strlen
-  void send_str(const char *string) {
-    call SimpleSend.send((uint8_t*)string, strlen(string));
-  }
   
   void handle_frame(xbee_rx_t *frame) {
     signal SimpleReceive.received(frame->data, frame->size);
@@ -59,8 +54,7 @@ implementation{
     printf("my address : %02x %02x\n", (uint8_t)(address >> 8), (uint8_t)address);
     printf("my parent  : %02x %02x\n", (uint8_t)(parent  >> 8), (uint8_t)parent );
     
-    printf("sending hello to parent...\n");
-    send_str("hello parent!");
+    signal SimpleSend.ready();
   }
   
   // Periodic Receive Loop
