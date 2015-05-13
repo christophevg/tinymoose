@@ -87,7 +87,7 @@ all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 				 -fnesc-no-debug \
 				 ${APP}.nc \
 				 -o $@ \
-				 -v > ${GENERATION_LOG} 2>&1
+				 -v > ${GENERATION_LOG} 2>&1 || (cat ${GENERATION_LOG} && false)
 
 %/Makefile: %
 	@echo "*** adding Makefile..."
