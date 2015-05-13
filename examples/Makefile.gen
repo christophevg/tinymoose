@@ -1,4 +1,3 @@
-
 ifndef TARGET
   $(error Please define at least the TARGET variable)
 endif
@@ -16,6 +15,8 @@ MOOSE_DIR=../..
 CC=${NESC_DIR}/src/nesc1
 GENERATION_LOG=.nesc.generation.log
 DONGLE=digitus
+
+SRC_DIR=../../src
 
 all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 	
@@ -43,6 +44,8 @@ all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 				 -DNESC=136 \
 				 -I${NESC_DIR}/tools \
 				 -I${MOOSE_DIR} \
+				 -I${SRC_DIR}/components \
+				 -I${SRC_DIR}/interfaces \
 				 -I${TINYOS_CONTRIB_DIR}/tos/platforms/raven \
 				 -I${TINYOS_CONTRIB_DIR}/tos/platforms/raven/chips/rf230 \
 				 -I${TINYOS_ROOT_DIR}/tos/chips/rf230 \
