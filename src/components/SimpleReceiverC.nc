@@ -1,4 +1,4 @@
-module SimpleReceiver {
+module SimpleReceiverC {
   uses interface SimpleReceive;
 }
 
