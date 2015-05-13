@@ -3,7 +3,6 @@ ifndef TARGET
 endif
 
 APP=${TARGET}AppC
-COMPONENTS=$(wildcard *.nc)
 
 BUILD_DIR=build
 
@@ -17,6 +16,11 @@ GENERATION_LOG=.nesc.generation.log
 DONGLE=digitus
 
 SRC_DIR=../../src
+
+LOCAL_COMPONENTS=$(wildcard *.nc)
+SRC_COMPONENTS=$(wildcard ${SRC_DIR}/components/*.nc)
+SRC_INTERFACES=$(wildcard ${SRC_DIR}/interfaces/*.nc)
+COMPONENTS=${LOCAL_COMPONENTS} ${SRC_COMPONENTS} ${SRC_INTERFACES}
 
 all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
 	
