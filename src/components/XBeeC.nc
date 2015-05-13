@@ -31,6 +31,10 @@ implementation{
     return SUCCESS;
   }
   
+  command error_t SimpleSend.send_str(const char* string) {
+    call SimpleSend.send((uint8_t*)string, strlen(string));
+  }
+
   void handle_frame(xbee_rx_t *frame) {
     signal SimpleReceive.received(frame->data, frame->size);
   }
