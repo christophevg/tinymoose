@@ -23,6 +23,8 @@ SRC_INTERFACES=$(wildcard ${SRC_DIR}/interfaces/*.nc)
 COMPONENTS=${LOCAL_COMPONENTS} ${SRC_COMPONENTS} ${SRC_INTERFACES}
 
 all: ${BUILD_DIR}/program ${BUILD_DIR}/serial
+
+hex: ${BUILD_DIR}/main.hex
 	
 %/program: % %/main.hex %/Makefile
 	@echo "*** programming device..."
