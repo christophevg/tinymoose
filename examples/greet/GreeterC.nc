@@ -3,7 +3,10 @@ module GreeterC {
   uses interface SimpleReceive;
 }
 
+#include <stdio.h>
+
 implementation {
+
   event void SimpleSend.ready() {
     printf("sending hello to parent...\n");
     call SimpleSend.send_str("hello parent!");

@@ -387,4 +387,14 @@ Next we hook up another XBee in coordinator mode using an explorer board and use
 <img src="media/greet-setup.jpg" width="724">
 </p>
 
+#### Frames and SimpleXBee
+
+The `SimpleSend` and `SimpleReceive` interfaces are nice for initial examples, but soon we will need access to all aspects of the communication. Exposing these interfaces on `XBeeC`, and add extended interfaces is possible, but we can also extract the functionality from our current implementation, and add a `SimpleXBeeC` module that operates as a proxy in between, hiding the underlying XBee architecture:
+
+<p align="center">
+<img src="media/simplexbee.png">
+</p>
+
+The `FrameSend` interface comes pretty close to the standard `Send` interface, as does the `FrameReceive` to `Send`. Although it would be possible to extend the implementation even further to compatibility with and use of these interfaces, there is little use at this point.
+
 _More to come soon..._
