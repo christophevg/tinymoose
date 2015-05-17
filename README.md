@@ -397,4 +397,66 @@ The `SimpleSend` and `SimpleReceive` interfaces are nice for initial examples, b
 
 The `FrameSend` interface comes pretty close to the standard `Send` interface, as does the `FrameReceive` to `Send`. Although it would be possible to extend the implementation even further to compatibility with and use of these interfaces, there is little use at this point.
 
+#### Extending IO
+
+So far, we've _simply_ sent all traffic to the coordinator of the network, which in many WSNs makes sense, but sometimes, we want more control over the destination of our frames. So, let's _extend_ the _simple_ XBee implementation and give allow to specify the destination and the origin of messages. We also include broadcast support now:
+
+```c
+#include <TinyError.h>
+
+interface ExtendedSend {
+  event void ready(void);
+
+  command error_t broadcast(uint8_t *bytes, uint8_t size);
+  command error_t broadcast_str(const char *string);
+
+  command error_t send(uint64_t address, uint16_t nw_address,
+                       uint8_t *bytes, uint8_t size);
+  command error_t send_str(uint64_t address, uint16_t nw_address,
+                           const char *string);
+}
+```
+
+```c
+interface ExtendedReceive {
+  event void received(uint64_t address, uint16_t nw_address,
+                      uint8_t *bytes, uint8_t size);
+}
+```
+
+After upgrading and rewiring our `GreeterC`...
+
+```c
+configuration ExtendedIOAppC {}
+
+implementation{ 
+  components MooseC, XBeeC, ExtendedXBeeC, GreeterC, MainC;
+  components new TimerMilliC() as Timer0;
+
+  MooseC.Boot  -> MainC.Boot;
+
+  XBeeC.Boot   -> MainC.Boot;
+  XBeeC.Timer0 -> Timer0;
+
+  ExtendedXBeeC.FrameSend    -> XBeeC.FrameSend;
+  ExtendedXBeeC.FrameReceive -> XBeeC.FrameReceive;
+  ExtendedXBeeC.XBeeFrame    -> XBeeC.XBeeFrame;
+
+  GreeterC.ExtendedSend       -> ExtendedXBeeC.ExtendedSend;
+  GreeterC.ExtendedReceive    -> ExtendedXBeeC.ExtendedReceive;
+}
+```
+
+... we get the following result with information about the network addresses in use:
+
+<p align="center">
+<img src="media/greet-ext-child.png">
+</p>
+
+<p align="center">
+<img src="media/greet-ext-parent.png">
+</p>
+
+**NOTE**: It's a convention for XBee routers to have a parent address `ff fe`. This doesn't correspond to the _actual_ network address of the coordinator in this case, which is `00 00`.
+
 _More to come soon..._
