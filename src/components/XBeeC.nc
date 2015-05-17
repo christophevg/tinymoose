@@ -22,6 +22,7 @@ implementation{
   // FrameSend
   command error_t FrameSend.send(frame_t *frame) {
     xbee_send((xbee_tx_t*)frame);
+    return SUCCESS;
   }
   
   void handle_frame(xbee_rx_t *frame) {
