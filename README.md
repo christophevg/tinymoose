@@ -459,4 +459,28 @@ implementation{
 
 **NOTE**: It's a convention for XBee routers to have a parent address `ff fe`. This doesn't correspond to the _actual_ network address of the coordinator in this case, which is `00 00`.
 
+### Mesh Support
+
+The extended information is about what you can get out of the XBee API. But XBee modules create a meshed network, mostly a tree-structure with each child propagating its frame to its parent, thus routing the messages through the network.
+
+XBee also doesn't provide access to raw frame information for frames sent between other nodes (aka promiscuous mode). And XBee's default broadcasting support is flawed - as soon as you send many packets, they get dropped due to a buffer overflow.
+
+To alleviate this in software, we could layer a component the solves all these problems, by implementing all communication using unicast messages, sending all messages to both parent and children - to simulate the promiscuous behavior - and adding additional information about the origin , destination and the hop taken in the meshed network.
+
+This example implements a mini-meshed network, consisting of three nodes - although the implementation could probably allow for larger networks:
+
+<p align="center">
+<img src="media/mesh-setup.png">
+</p>
+
+Each device sends:
+
+1. a message to the coordinator of the topology
+2. a message to its parent
+3. a broadcast message
+
+The end-device knows about the router, because it's its parent, the router doesn't know about the end-device ... until it receives a frame coming from it.
+
+**NOTE**: To force the XBee modules to take on each role, we set the `NJ` network join time of the coordinator to e.g. 40 seconds. After that, the end-node can't join the coordinator and will be forced to join through the router.
+
 _More to come soon..._
