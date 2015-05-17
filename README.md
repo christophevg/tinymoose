@@ -51,9 +51,9 @@ I like to keep things minimal, at least at first, and this also applies to the f
 
 Every example builds from a single `make` command. It uses `nesc1` to generate the single C file that contains everything. Next, it uses Moose's build infrastructure to build it.
 
-The output of `nesc1` is caught in `.nesc.generation.log`.
+The output of `nesc1` is caught in `.nesc.generation.log`, hidden by default, but shown if an error occurs.
 
-To construct the command line instructions for using `nesc1`, one can first call the normal build instruction `make raven` to initiate the normal TinyOS (3.x) build process. A `Makefile.tos` is provided to perform this operation:
+To construct the command line instructions for using `nesc1`, one can first call the normal build instruction `make raven` to initiate the normal TinyOS (3.x) build process. A `Makefile.tos` is provided in the first example to illustrate how to perform this operation:
 
 ```bash
 $ make -f Makefile.tos raven
@@ -387,7 +387,7 @@ Next we hook up another XBee in coordinator mode using an explorer board and use
 <img src="media/greet-setup.jpg" width="724">
 </p>
 
-#### Frames and SimpleXBee
+### Frames and SimpleXBee
 
 The `SimpleSend` and `SimpleReceive` interfaces are nice for initial examples, but soon we will need access to all aspects of the communication. Exposing these interfaces on `XBeeC`, and add extended interfaces is possible, but we can also extract the functionality from our current implementation, and add a `SimpleXBeeC` module that operates as a proxy in between, hiding the underlying XBee architecture:
 
@@ -397,7 +397,7 @@ The `SimpleSend` and `SimpleReceive` interfaces are nice for initial examples, b
 
 The `FrameSend` interface comes pretty close to the standard `Send` interface, as does the `FrameReceive` to `Send`. Although it would be possible to extend the implementation even further to compatibility with and use of these interfaces, there is little use at this point.
 
-#### Extending IO
+### Extending IO
 
 So far, we've _simply_ sent all traffic to the coordinator of the network, which in many WSNs makes sense, but sometimes, we want more control over the destination of our frames. So, let's _extend_ the _simple_ XBee implementation and give allow to specify the destination and the origin of messages. We also include broadcast support now:
 
