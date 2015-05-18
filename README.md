@@ -473,14 +473,61 @@ This example implements a mini-meshed network, consisting of three nodes - altho
 <img src="media/mesh-setup.png">
 </p>
 
-Each device sends:
+The end-node and the router each send out:
 
 1. a message to the coordinator of the topology
-2. a message to its parent
-3. a broadcast message
+2. a broadcast message
 
 The end-device knows about the router, because it's its parent, the router doesn't know about the end-device ... until it receives a frame coming from it.
 
 **NOTE**: To force the XBee modules to take on each role, we set the `NJ` network join time of the coordinator to e.g. 40 seconds. After that, the end-node can't join the coordinator and will be forced to join through the router.
+
+Both `MeshSend` and `MeshReceive` only deal with the 16-bit network addresses. Because the `VirtualMeshC` component only send unicast frames to its parent, it knows the 64-bit address to use. The component also packs additional routing information in the frame: `from`, `to` and `hop` contain the addresses of the original sender, the eventual recipient and the hop that was taken to deliver this frame.
+
+```c
+#include <TinyError.h>
+
+interface MeshSend {
+  event void ready(void);
+
+  event void transmitted(uint16_t from, uint16_t to, uint16_t hop,
+                         uint8_t *bytes, uint8_t size);
+
+  command error_t broadcast(uint8_t *bytes, uint8_t size);
+  command error_t broadcast_str(const char *string);
+
+  command error_t send(uint16_t to, uint8_t *bytes, uint8_t size);
+  command error_t send_str(uint16_t to, const char *string);
+}
+```
+
+```c
+interface MeshReceive {
+  event void received(uint16_t source,
+                      uint16_t from, uint16_t to, uint16_t hop,
+                      uint8_t *bytes, uint8_t size);
+}
+```
+
+We can now track the messages as they are flowing through the virtual meshed network: The end-node (with address `ca db`) starts up and waits for its parent to notice its `join` broadcasts. Its parent is the router (with address `a9 47`), that is also waiting for messages to arrive, coming from the end-node. As soon as the router receives such a (broadcasted `join`) message, it starts sending out its own messages, one unicast to the coordinator and one broadcast to all.
+
+The messages of the router reach the coordinator, but also the end-node, because the virtual mesh implementation sends a copy of each message destined for the coordinator, also to the end-node, to simulate the promiscuous behaviour. The end-node therefore receives both messages, originating from the router, destined for the coordinator (unicast address `00 00` and broadcast address `ff fe`).
+
+<p align="center">
+<img src="media/mesh-end-node.png">
+</p>
+
+The receiving of the messages triggers the end-node to start sending its own messages, which are passed on to its parent, the router. Both messages are forwarded by the router, and again also copied to the end-node, who receives the "echo" of its own messages being forwarded.
+
+<p align="center">
+<img src="media/mesh-router.png">
+</p>
+
+The coordinator receives all four messages and gives an overview of the messages and their virtual routing information:
+
+<p align="center">
+<img src="media/mesh-coordinator.png">
+</p>
+
 
 _More to come soon..._
