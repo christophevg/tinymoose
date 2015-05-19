@@ -94,6 +94,7 @@ hex: ${BUILD_DIR}/main.hex
 %/Makefile: %
 	@echo "*** adding Makefile..."
 	@echo "USE_MOOSE=avr serial xbee clock" > $@
+	@echo "MORE_SRC=$(addprefix ../, ${MORE_SRC})" >> $@
 	@echo "include ../../Makefile.build" >> $@
 
 ${BUILD_DIR}:

@@ -8,7 +8,7 @@ ifndef USE_MOOSE
 	USE_MOOSE=
 endif
 
-MORE_SRC= $(addsuffix .c, $(addprefix ${MOOSE_DIR}/, ${USE_MOOSE}))
+MORE_SRC += $(addsuffix .c, $(addprefix ${MOOSE_DIR}/, ${USE_MOOSE}))
 MORE_OBJECTS = $(patsubst %.c, %.o, $(MORE_SRC))
 
 MCU=atmega1284p
