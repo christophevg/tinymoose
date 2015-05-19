@@ -626,4 +626,38 @@ At the coordinator we see the readings from the end-node (network address `9f aa
 
 Yes, it was pretty dark in my room at that time ;-)
 
+### Two Hearts Beating
+
+We're going to add two algorithms that can detect aberrations in the operation of the nodes. The first is a Heartbeat: each node broadcasts a frame at a known interval (in this case every 3 seconds), which is of course received by the other node. This node keeps track of these heartbeats and checks whether the interval is respected. If not, it will mark the node os suspicious, or at least not-trustworthy. Validation of this information isn't performed at the same time as the heartbeats are detected (or not), but at another interval that leaves some room for small, typically network problems.
+
+The frame that is broadcasted consists of 25 bytes:
+
+<center>
+<table>
+<tr><th colspan="3">payload bytes</th></tr>
+<tr><th width="15%">0</th><th width="30%">1 - 4</th><th width="55%">5 - 24</th></tr>
+<tr><td>sequence</td><td>timestamp</td><td>sha1(sequence,timestamp)</td></tr>
+</table>
+</center>
+
+The sequence number is a `byte` containing an increasing numeric value. The timestamp is an `unsigned long` (4 bytes) containing the clock value of the sending node. The remaining 20 bytes contain a [SHA1](http://en.wikipedia.org/wiki/SHA-1) hash of the sequence and the timestamp. This allows the receiver to verify the integrity of the data.
+
+Let's see it in action...
+
+<p align="center">
+<img src="media/heartbeat-child.png">
+</p>
+
+When a node receives the first heartbeat of another node, it creates a record for this node to track it. It monitors the sequence number, when it last saw the node's heartbeat, how many incidents have been recorded and if it still trusts this node.
+
+I've kept the router running until the end-node reported three heartbeats. At that moment I unplugged the router. Two things can be seen from the screenshot: the low-level network stack produces `transmission failed` messages and the heartbeat algorithm reports three times that the expected heartbeat wasn't observed, after which it marks the node as untrusted.
+
+<p align="center">
+<img src="media/heartbeat-coordinator.png">
+</p>
+
+At the coordinator we see that few frames made it, because I unplugged the router ;-) And yes, I opened up some of the shades, boosting the light intensity ;-)
+
+**NOTE**: Given the output, I get the impression that TinyOS's way of dealing with periodic execution and `tasks` (see also [more info on its execution model](http://tinyos.stanford.edu/tinyos-wiki/index.php/Modules_and_the_TinyOS_Execution_Model:_Tasks)) makes the execution of the algorithms less predictable. When the end-node starts all of its functionality, many things are happening at the same time, so much that it even processes three heartbeats of the router before it can even send one of its own. To be investigated.
+
 _More to come soon..._
