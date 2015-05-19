@@ -529,5 +529,55 @@ The coordinator receives all four messages and gives an overview of the messages
 <img src="media/mesh-coordinator.png">
 </p>
 
+#### Time for an Intermezzo
+
+Some of the algorithms I want to implement to compare, require time. Moose provides `clock_get_millis()` which returns the current amount of milliseconds that have passed since initialisation of the clock using `clock_init()`. TinyOS provides the `Timer` interface, which allows use to perform periodic executions using `startPeriodic(<interval>)`, which signals `event Timer.fired()`.
+
+To make sure that the timers operate in comparable ways, I implemented a simple clock example:
+
+```c
+module ClockC {
+	uses interface Boot;
+  uses interface Timer<TMilli> as ClockTimer;
+}
+
+implementation{
+	event void Boot.booted() {
+    avr_init();
+    serial_init();
+    clock_init();
+    call ClockTimer.startPeriodic(1000L * 250);   // magico !
+    printf("now = 0   ");
+  }
+  
+  time_t  max    = 9999;
+  uint8_t length = 4;
+
+  #define BACK_SPACE 8
+
+  task void tick() {
+    int i;
+    time_t now = clock_get_millis();
+    for(i=0;i<length;i++) { printf("%c", BACK_SPACE); }
+    printf("%lu", now);
+    if(now > max) {
+      length++;
+      max = max * 10 + 9;
+    }
+  }
+
+  event void ClockTimer.fired() {
+    post tick();
+  }
+}
+```
+
+There is a magic constant `250` in there which was needed to get the same `1000` milliseconds interval returned by `clock_get_millis()`. Maybe I should say millisecond-like ticks, because when timed, there is a difference with a real clock. But as this is merely a linear modification in time and results are processed relatively, this is not an issue.
+
+The result is a simple milliseconds clock:
+
+<p align="center">
+<img src="media/clock.png">
+</p>
 
 _More to come soon..._
