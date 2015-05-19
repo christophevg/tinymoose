@@ -102,5 +102,6 @@ ${BUILD_DIR}:
 clean:
 	@rm -rf ${BUILD_DIR}
 	@rm -f ${GENERATION_LOG}
+	@rm -f *.{o,lst}
 
 .PRECIOUS: ${BUILD_DIR}/main.c ${BUILD_DIR}/main.hex ${BUILD_DIR}/Makefile

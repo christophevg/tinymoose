@@ -580,4 +580,50 @@ The result is a simple milliseconds clock:
 <img src="media/clock.png">
 </p>
 
+### The base application
+
+With (almost) everything in place, we can start implementing the application and the algorithms I want to compare. We start with a component for the base application: reading a light sensor value and reporting it to the coordinator, through the (virtually) meshed network.
+
+The implementation boils down to...
+
+```c
+  event void MeshSend.ready() {
+    avr_adc_init();                 // initialize the ADC for normal readings
+    clock_init();
+    call LightReadingTimer.startPeriodic(LIGHTREADING_INTERVAL * 250);
+    _log("Light reading started...\n");
+  }
+  
+  task void measure_and_send(void) {
+    uint16_t reading;               // the 16-bit reading from the ADC
+    uint8_t  values[2];             // the bytes containing the reading in bytes
+
+    // read light sensor
+    reading = avr_adc_read(LIGHT_SENSOR_PIN);
+    values[0] = (reading >> 8);
+    values[1] = reading;
+  
+    _log("light reading: %02x %02x\n", values[0], values[1]);
+
+    // and send it to the coordinator through the mesh
+    call MeshSend.send(DESTINATION, values, 2);
+  }
+  
+  event void LightReadingTimer.fired() { post measure_and_send();  }
+```
+
+And the result looks like...
+
+<p align="center">
+<img src="media/lightreading-child.png">
+</p>
+
+At the coordinator we see the readings from the end-node (network address `9f aa`) reoccur, with the readings from the router (network address `a9 47`) also shown.
+
+<p align="center">
+<img src="media/lightreading-coordinator.png">
+</p>
+
+Yes, it was pretty dark in my room at that time ;-)
+
 _More to come soon..._
