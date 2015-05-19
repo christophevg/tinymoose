@@ -529,7 +529,7 @@ The coordinator receives all four messages and gives an overview of the messages
 <img src="media/mesh-coordinator.png">
 </p>
 
-#### Time for an Intermezzo
+### Time for an Intermezzo
 
 Some of the algorithms I want to implement to compare, require time. Moose provides `clock_get_millis()` which returns the current amount of milliseconds that have passed since initialisation of the clock using `clock_init()`. TinyOS provides the `Timer` interface, which allows use to perform periodic executions using `startPeriodic(<interval>)`, which signals `event Timer.fired()`.
 
