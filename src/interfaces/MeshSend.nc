@@ -2,6 +2,8 @@
 
 interface MeshSend {
   event void ready(void);
+  
+  command uint16_t get_own_nw_address(void);
 
   event void transmitted(uint16_t from, uint16_t to, uint16_t hop,
                          uint8_t *bytes, uint8_t size);

@@ -15,6 +15,10 @@ implementation {
   uint16_t parent;
   bool     router;
   
+  command uint16_t MeshSend.get_own_nw_address(void) {
+    return me;
+  }
+  
   // volatile, because it is changed from interrupt and should not be optimized
   // form functions that don't change it.
   volatile uint64_t other_address    = XB_COORDINATOR;
