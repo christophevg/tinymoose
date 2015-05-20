@@ -90,6 +90,10 @@ hex: ${BUILD_DIR}/main.hex
 				 ${APP}.nc \
 				 -o $@ \
 				 -v > ${GENERATION_LOG} 2>&1 || (cat ${GENERATION_LOG} && false)
+ifdef PATCH
+	@echo "*** patching $@ using ${PATCH}"
+	@(cd $<; patch -s < ../${PATCH})
+endif
 
 %/Makefile: %
 	@echo "*** adding Makefile..."

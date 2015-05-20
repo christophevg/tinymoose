@@ -1,9 +1,50 @@
 configuration DetectionAppC {}
 
 implementation{ 
-  components MooseC, Engine1C, Engine2C, MainC;
+  components MooseC, XBeeC, VirtualMeshC,
+             HeartbeatingC, ReputationC,
+             LightReadingC,
+             ReportingC,
+             MainC;
 
-  MooseC.Boot   -> MainC.Boot;
-  Engine1C.Boot -> MainC.Boot;
-  Engine2C.Boot -> MainC.Boot;
+  components new TimerMilliC() as NetworkTimer;
+
+  components new TimerMilliC() as HeartbeatTimer;
+  components new TimerMilliC() as ProcessingTimer;
+
+  components new TimerMilliC() as ValidationTimer;
+  components new TimerMilliC() as SharingTimer;
+
+  components new TimerMilliC() as LightReadingTimer;
+  
+  components new TimerMilliC() as ReportingTimer;
+
+  MooseC.Boot                     -> MainC.Boot;
+
+  XBeeC.Boot                      -> MainC.Boot;
+  XBeeC.Timer0                    -> NetworkTimer;
+
+  VirtualMeshC.FrameSend          -> XBeeC.FrameSend;
+  VirtualMeshC.FrameReceive       -> XBeeC.FrameReceive;
+  VirtualMeshC.XBeeFrame          -> XBeeC.XBeeFrame;
+
+  HeartbeatingC.HeartbeatTimer    -> HeartbeatTimer;
+  HeartbeatingC.ProcessingTimer   -> ProcessingTimer;
+
+  HeartbeatingC.MeshSend          -> VirtualMeshC.MeshSend;
+  HeartbeatingC.MeshReceive       -> VirtualMeshC.MeshReceive;
+  
+  ReputationC.ValidationTimer     -> ValidationTimer;
+  ReputationC.SharingTimer        -> SharingTimer;
+
+  ReputationC.MeshSend            -> VirtualMeshC.MeshSend;
+  ReputationC.MeshReceive         -> VirtualMeshC.MeshReceive;
+
+  LightReadingC.LightReadingTimer -> LightReadingTimer;
+
+  LightReadingC.MeshSend          -> VirtualMeshC.MeshSend;
+  LightReadingC.MeshReceive       -> VirtualMeshC.MeshReceive;
+  
+  ReportingC.Boot                 -> MainC.Boot;
+  ReportingC.ReportingTimer       -> ReportingTimer;
 }

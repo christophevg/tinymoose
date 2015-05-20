@@ -692,4 +692,142 @@ At the coordinator side we see...
 
 ... a few light readings from both nodes and one broadcasted reputation message from the end-device. The sharing interval is set at 7.5 seconds, but since the router was unplugged after three successful forwards, the other broadcasts never made it to the coordinator. We can still see them in the log of the end-node, who tracks his reputation messages of size 10.
 
+### All together now ... Detection
+
+Combining all algorithms and the light sensing application itself, simply requires wiring alls components together. This is really where TinyOS shines:
+
+```c
+configuration DetectionAppC {}
+
+implementation{ 
+  components MooseC, XBeeC, VirtualMeshC,
+             HeartbeatingC, ReputationC,
+             LightReadingC,
+             MainC;
+
+  components new TimerMilliC() as NetworkTimer;
+
+  components new TimerMilliC() as HeartbeatTimer;
+  components new TimerMilliC() as ProcessingTimer;
+
+  components new TimerMilliC() as ValidationTimer;
+  components new TimerMilliC() as SharingTimer;
+
+  components new TimerMilliC() as LightReadingTimer;
+
+  MooseC.Boot                     -> MainC.Boot;
+
+  XBeeC.Boot                      -> MainC.Boot;
+  XBeeC.Timer0                    -> NetworkTimer;
+
+  VirtualMeshC.FrameSend          -> XBeeC.FrameSend;
+  VirtualMeshC.FrameReceive       -> XBeeC.FrameReceive;
+  VirtualMeshC.XBeeFrame          -> XBeeC.XBeeFrame;
+
+  HeartbeatingC.HeartbeatTimer    -> HeartbeatTimer;
+  HeartbeatingC.ProcessingTimer   -> ProcessingTimer;
+
+  HeartbeatingC.MeshSend          -> VirtualMeshC.MeshSend;
+  HeartbeatingC.MeshReceive       -> VirtualMeshC.MeshReceive;
+  
+  ReputationC.ValidationTimer     -> ValidationTimer;
+  ReputationC.SharingTimer        -> SharingTimer;
+
+  ReputationC.MeshSend            -> VirtualMeshC.MeshSend;
+  ReputationC.MeshReceive         -> VirtualMeshC.MeshReceive;
+
+  LightReadingC.LightReadingTimer -> LightReadingTimer;
+
+  LightReadingC.MeshSend          -> VirtualMeshC.MeshSend;
+  LightReadingC.MeshReceive       -> VirtualMeshC.MeshReceive;
+}
+```
+
+Now, I want to compare the impact of the algorithms. To do this I want to compare the number of messages that have been sent, the number of bytes that have been sent and ... the duration of the `event loop`.
+
+Defining the event loop in the case of TinyOS, is not that straight forward. But if we take a look at the generated `.c` file, we might find a place that corresponds to it. We start at the `main()` function:
+
+```c
+int main(void ) {
+  __nesc_atomic_t __nesc_atomic = __nesc_atomic_start();
+  * (volatile uint8_t *)(0x34 + 0x20) = 0;
+  __asm volatile ("in __tmp_reg__, __SREG__""\n\t""cli""\n\t""sts %0, %1""\n\t""sts %0, __zero_reg__""\n\t""out __SREG__,__tmp_reg__""\n\t" :  : "M"((uint16_t )& * (volatile uint8_t *)0x60), "r"((uint8_t )((1 << 4) | (1 << 3))) : "r0");
+  RealMainP__Scheduler__init();
+  RealMainP__PlatformInit__init();
+  while (RealMainP__Scheduler__runNextTask()) ;
+  RealMainP__SoftwareInit__init();
+  while (RealMainP__Scheduler__runNextTask()) ;
+  __nesc_atomic_end(__nesc_atomic);
+  __nesc_enable_interrupt();
+  RealMainP__Boot__booted();
+  RealMainP__Scheduler__taskLoop();
+  return -1;
+}
+```
+
+In fact the line we're looking for is the one-but-last: `RealMainP__Scheduler__taskLoop()`:
+
+```c
+inline static void RealMainP__Scheduler__taskLoop(void) {
+  SchedulerBasicP__Scheduler__taskLoop();
+}
+```
+
+Okay, another redirection to `SchedulerBasicP__Scheduler__taskLoop()`:
+
+```c
+static inline void SchedulerBasicP__Scheduler__taskLoop(void) {
+  for(;;) {
+    uint8_t nextTask;
+    __nesc_atomic_t __nesc_atomic = __nesc_atomic_start();
+    while ((nextTask = SchedulerBasicP__popTask()) == SchedulerBasicP__NO_TASK) {
+      SchedulerBasicP__McuSleep__sleep();
+    }
+    __nesc_atomic_end(__nesc_atomic);
+    SchedulerBasicP__TaskBasic__runTask(nextTask);
+  }
+}
+```
+
+Here we find the real event loop, or `task loop` if you like. This endless `for(;;)` loop keeps iterating, looking for the next task and running it. All of our algorithms are (multiple) tasks that need to be run. Here we want to increase a variable, called `cycles`. But we need to ensure that the true meaning of the event loop span is honoured, not only the outer `for(;;)` loop defines an iteration of the event loop, but also the inner `while()` defines an iteration, one where there is no task at hand.
+
+But first, let's add one more component to report on all of these parameters:
+
+```c
+  #define REPORTING_INTERVAL 15000L
+
+  event void Boot.booted() {
+    clock_init();
+    call ReportingTimer.startPeriodic(REPORTING_INTERVAL * 250);
+  }
+  
+  task void report(void) {
+    static unsigned long total_frames  = 0,
+                         total_bytes   = 0,
+                         samples       = 0;
+    time_t now;
+    xbee_metrics_t metrics;
+
+    now           = clock_get_millis();
+    metrics       = xbee_reset_counters();
+    total_frames += metrics.frames;
+    total_bytes  += metrics.bytes;
+    samples++;
+
+    _log("metrics: cycles: %lu (ev:%u us) | xbee: %d frames (avg:%u/tot:%lu) / %i bytes (avg:%u/tot:%lu)\n",
+         cycles, (unsigned int)((now * 1000.0) / cycles),
+         metrics.frames, (unsigned int)(total_frames / samples), total_frames,
+         metrics.bytes,  (unsigned int)(total_bytes  / samples), total_bytes);
+    
+  }
+  
+  event void ReportingTimer.fired() { post report();  }
+```
+
+Adding the `cycles++` instructions is done after a succesfull generation/compilation cycle. I've added a patch file that automatically will be applied. After 90 seconds the statistics look like this...
+
+<p align="center">
+<img src="media/metrics-all.png">
+</p>
+
 _More to come soon..._
