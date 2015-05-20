@@ -632,13 +632,11 @@ We're going to add two algorithms that can detect aberrations in the operation o
 
 The frame that is broadcasted consists of 25 bytes:
 
-<center>
-<table>
+<table width="100%">
 <tr><th colspan="3">payload bytes</th></tr>
 <tr><th width="15%">0</th><th width="30%">1 - 4</th><th width="55%">5 - 24</th></tr>
 <tr><td>sequence</td><td>timestamp</td><td>sha1(sequence,timestamp)</td></tr>
 </table>
-</center>
 
 The sequence number is a `byte` containing an increasing numeric value. The timestamp is an `unsigned long` (4 bytes) containing the clock value of the sending node. The remaining 20 bytes contain a [SHA1](http://en.wikipedia.org/wiki/SHA-1) hash of the sequence and the timestamp. This allows the receiver to verify the integrity of the data.
 
@@ -659,5 +657,39 @@ I've kept the router running until the end-node reported three heartbeats. At th
 At the coordinator we see that few frames made it, because I unplugged the router ;-) And yes, I opened up some of the shades, boosting the light intensity ;-)
 
 **NOTE**: Given the output, I get the impression that TinyOS's way of dealing with periodic execution and `tasks` (see also [more info on its execution model](http://tinyos.stanford.edu/tinyos-wiki/index.php/Modules_and_the_TinyOS_Execution_Model:_Tasks)) makes the execution of the algorithms less predictable. When the end-node starts all of its functionality, many things are happening at the same time, so much that it even processes three heartbeats of the router before it can even send one of its own. To be investigated.
+
+### Reputation
+
+The second algorithm is one that keeps a reputation score on other nodes. Thanks to the promiscuous support in the virtual meshed network implementation, a node can check whether another node actually forwards messages it received. If not, something fishy is going on and we lower our trust in that node. The actual implementation uses a Beta-distribution, represented by parameters alpha and beta. For more details, see the paper _Reputation-based framework for high integrity sensor networks_ by Ganeriwal et al. from 2008.
+
+Besides the processing of all messages - to verify correct forwarding - the algorithm also exchanges  reputation information with other nodes in the network. This second-hand information is also taken into account. Such a reputation-exchange message consists of 10 bytes:
+
+<table width="100%>
+<tr><th colspan="3">payload bytes</th></tr>
+<tr><th width="20%">0 - 1</th><th width="40%">2 - 5</th><th width="40%">5 - 9</th></tr>
+<tr><td>nw address</td><td>alpha param (float)</td><td>beta param (float)</td></tr>
+</table>
+
+The network address is the two bytes address of the node we're exchanging information about. The alpha and beta parameters, each a 4 byte `float`, define the beta-distribution used to determine the trustworthiness of that node.
+
+In action, we see the different aspects of the algorithm operation...
+
+<p align="center">
+<img src="media/reputation-child.png">
+</p>
+
+Every 5 seconds, a node validates known nodes. In this case there is only one, the parent-router. The computation of alpha and beta parameters is based on the amount of messages that weren't forwarded versus the amount of messages expected to be forwarded. Given these parameters, the algorithm computes a level of trust, which starts of at 0.50 - the algorithm doesn't know anything about the node and its reputation is neutral.
+
+With each message that is correctly forwarded, the trust level increases. After 3 successful forwards, the trust level is at 0.80, and I (again) unplugged the router. With each validation, the trust level decreases until it goes below 0.25, at which point the node is marked as untrusted.
+
+**NOTE**: Yes, there is a bug in there somewhere :-) It seems some tracked message isn't removed correctly from the tracked list, causing more late messages to be taken into account than possible. Still, this doesn't harm the overall idea. Maybe I'll look into it later ;-)
+
+At the coordinator side we see...
+
+<p align="center">
+<img src="media/reputation-coordinator.png">
+</p>
+
+... a few light readings from both nodes and one broadcasted reputation message from the end-device. The sharing interval is set at 7.5 seconds, but since the router was unplugged after three successful forwards, the other broadcasts never made it to the coordinator. We can still see them in the log of the end-node, who tracks his reputation messages of size 10.
 
 _More to come soon..._
