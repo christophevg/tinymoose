@@ -840,4 +840,12 @@ $ make -f Makefile.light
 <img src="media/metrics-light.png">
 </p>
 
+```bash
+$ make -f Makefile.heartbeat
+```
+
+<p align="center">
+<img src="media/metrics-heartbeat.png">
+</p>
+
 _More to come soon..._

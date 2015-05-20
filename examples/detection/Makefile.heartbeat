@@ -1,0 +1,4 @@
+TARGET=DetectionWithHeartbeat
+MORE_SRC=sha1.c
+PATCH=reporting-heartbeat.diff
+include ../Makefile.gen
