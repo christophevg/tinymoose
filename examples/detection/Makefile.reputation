@@ -1,0 +1,4 @@
+TARGET=DetectionWithReputation
+MORE_SRC=
+PATCH=reporting-reputation.diff
+include ../Makefile.gen

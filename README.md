@@ -826,6 +826,16 @@ But first, let's add one more component to report on all of these parameters:
 
 Adding the `cycles++` instructions is done after a succesfull generation/compilation cycle. I've added a patch file that automatically will be applied. After 90 seconds the statistics look like this...
 
+```bash
+$ make
+...
+main.elf  :
+section          size      addr
+.data            1094   8388864
+.text           17582         0
+...
+```
+
 <p align="center">
 <img src="media/metrics-all.png">
 </p>
@@ -834,6 +844,12 @@ Comparing it to the other configurations requires regeneration and recompilation
 
 ```bash
 $ make -f Makefile.light
+...
+main.elf  :
+section          size      addr
+.data             534   8388864
+.text           11094         0
+...
 ```
 
 <p align="center">
@@ -842,10 +858,30 @@ $ make -f Makefile.light
 
 ```bash
 $ make -f Makefile.heartbeat
+...
+main.elf  :
+section          size      addr
+.data             806   8388864
+.text           15392         0
+...
 ```
 
 <p align="center">
 <img src="media/metrics-heartbeat.png">
+</p>
+
+```bash
+$ make -f Makefile.reputation
+...
+main.elf  :
+section          size      addr
+.data             822   8388864
+.text           13484         0
+...
+```
+
+<p align="center">
+<img src="media/metrics-reputation.png">
 </p>
 
 _More to come soon..._

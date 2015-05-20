@@ -1,0 +1,17 @@
+--- main.c	2015-05-20 18:09:14.000000000 +0200
++++ main-reputation.c	2015-05-20 18:09:41.000000000 +0200
+@@ -3786,12 +3786,14 @@ static inline void SchedulerBasicP__Sche
+         {
+           while ((nextTask = SchedulerBasicP__popTask()) == SchedulerBasicP__NO_TASK) 
+             {
++              cycles++;
+               SchedulerBasicP__McuSleep__sleep();
+             }
+         }
+ #line 161
+         __nesc_atomic_end(__nesc_atomic); }
+       SchedulerBasicP__TaskBasic__runTask(nextTask);
++      cycles++;
+     }
+ }
+ 
