@@ -1,0 +1,4 @@
+TARGET=DetectionLightOnly
+MORE_SRC=
+PATCH=reporting-light.diff
+include ../Makefile.gen

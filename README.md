@@ -830,4 +830,14 @@ Adding the `cycles++` instructions is done after a succesfull generation/compila
 <img src="media/metrics-all.png">
 </p>
 
+Comparing it to the other configurations requires regeneration and recompilation of a different wiring. I've included all other configurations and each of them can ben invoked from the same detection example folder:
+
+```bash
+$ make -f Makefile.light
+```
+
+<p align="center">
+<img src="media/metrics-light.png">
+</p>
+
 _More to come soon..._
