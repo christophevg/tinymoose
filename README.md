@@ -884,4 +884,94 @@ section          size      addr
 <img src="media/metrics-reputation.png">
 </p>
 
+### Puzzled...
+
+Ok, so now I have all data, let's see how this compares to my earlier manual and generated solutions. The following table gives an overview of the timings of the event loop. To determine the average duration of one event-loop iteration, every event loop iteration a counter is incremented. After 15 seconds have passed, this counter is used to determine the average time of one event loop.
+
+This way, I've computed the time for a completely manual case, a case where the code was generated and used a framework and now the result of nesC. The tabel starts with the base case: a simple light sensing application, next with additional heartbeat, with reputation and with both. In each case the `+` column shows what the additional algorithm _seems_ to add. The `theory` column computes the theoretical duration, and its correseponding `+` column shows the additional overhead of the actual time computed for both algorithms, also expressed as a relative value.
+
+<table>
+<tr><th colspan="11">Event Loop, average, in &mu;s</th></tr>
+<tr><th></th><th>light</th><th>hb</th><th>+</th><th>rep</th><th>+</th><th>both</th><th>+</th><th>theory</th><th>+</th><th>%</th></tr>
+<tr align="right"><th>manual</th><td>48</td><td>94</td><td>46</td><td>88</td><td>40</td><td>149</td><td>101</td><td>134</td><td>15</td><td>11%</td></tr>
+<tr align="right"><th>generated</th><td>48</td><td>121</td><td>73</td><td>121</td><td>73</td><td>138</td><td>90</td><td>194</td><td>-56</td><td>-29%</td></tr>
+<tr align="right"><th>nesc</th><td>95</td><td>103</td><td>8</td><td>101</td><td>6</td><td>116</td><td>21</td><td>109</td><td>7</td><td>6%</td></tr>
+</table>
+
+Some initial observations:
+
+* nesC's approach adds about 50&mu;s to the base application, which I believe to be due to the framework in general. This includes e.g. the generic approach to periodic timers - which is about the only thing that changed porting the manual example to nesC.
+* When adding the heartbeat algorithm, three observations can be made:
+  * In the manual case adding the hearbeat, the event loop doubles on average.
+  * In the generated case it increases even more. Here again generic framework code kicks in.
+  * In case of nesC, the additional cost is merely 8&mu;s.
+
+Until I got the nesC results, it never struck me but, there is something _strange_ with the additional cost of the heartbeat implementation in the manual (maybe also the generated) case. The nesC implementation is a minimal port of the manual code to nesC. The only thing that really got changed was the iterative execution of the broadcasting of heartbeats and the evaluation of known nodes.
+
+What initially was written as...
+
+```c
+void heartbeat_step(void) {
+  // intervals markers
+  static time_t next_heartbeat  = 0;
+  static time_t next_processing = 0;
+  if(next_heartbeat == 0) {
+    next_heartbeat = clock_get_millis();
+    next_processing = clock_get_millis() + PROCESSING_INTERVAL;
+  }
+
+  time_t now = clock_get_millis();
+  
+  // send a heartbeat
+  if( now >= next_heartbeat ) {
+    beat();
+    next_heartbeat += HEARTBEAT_INTERVAL;
+  }
+
+  now = clock_get_millis(); // refresh time, might bring next step closer ;-)
+  
+  // do background processing
+  if( now >= next_processing ) {
+    process();
+    next_processing += PROCESSING_INTERVAL;
+  }
+}
+```
+
+...was turned into...
+
+```c
+  event void MeshSend.ready() {
+    me = call MeshSend.get_own_nw_address();
+    clock_init();
+    call HeartbeatTimer.startPeriodic(HEARTBEAT_INTERVAL * 250);
+    call ProcessingTimer.startPeriodic(PROCESSING_INTERVAL * 250);
+  }
+  ...
+  event void HeartbeatTimer.fired()  { post beat();  }
+  event void ProcessingTimer.fired() { post process(); }
+```
+
+So except for...
+
+* two variables, `next_heartbeat` and `next_processing`, containing the next time when the next beat or a processing should happen
+* two times fetching the current time (`clock_get_millis()` simply returns a `ticks` counter variable)
+* two comparisons of these values
+
+...the actual execution seems identical. And still...
+
+Given that heartbeats are sent out every 3 seconds and processing is done every 5 seconds, a very big majority of the event loop iterations will be not executing `beat` and `process`. The few executions will thus be averaged over a large number of _idle_ loops.
+
+In the case of nesC, an event loop for the light application with heartbeat checking takes about 100&mu;s, which means that it gets executed roughly 10.000 times per second, meaning that the time to sense the light is averaged over 50.000 iterations, as does the processing of heartbeats and the sending of heartbeats over 30.000 iterations.
+
+The theoretical execution time of the heartbeat algorithm can be roughly estimated: In one second, the algorithm takes 10.000 x 8&mu;s or 80ms. In that same second 1/3 t\_beat and 1/5 t\_process are consumed, or 1/3 t\_beat + 1/5 t\_process = 80ms. This means that the theoretical execution time of _the_ heartbeat algorithm would lie somewhere between 240ms and 400ms.
+
+Looking at the manual case, this would be even almost 6 times higher? For exactly the same algorithm/code, with the exceptions listed above. Which would mean that these exceptions take up about 5 times the time of the entire algorithm?
+
+I'm puzzled. Time to upload some test programs to validate this.
+
+### Comparing Event Loop Times
+
+There are a few aspects that introduce uncertainty. Computing the average event-loop duration in both cases is different, reasonable, but different. So let's start with an algorithm of which we _known_ the exact execution time: `_delay_ms(200)`, which we execute with an interval of 2s.
+
 _More to come soon..._
