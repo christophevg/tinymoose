@@ -974,4 +974,52 @@ I'm puzzled. Time to upload some test programs to validate this.
 
 There are a few aspects that introduce uncertainty. Computing the average event-loop duration in both cases is different, reasonable, but different. So let's start with an algorithm of which we _known_ the exact execution time: `_delay_ms(200)`, which we execute with an interval of 2s.
 
+So my first test component looks like...
+
+```c
+implementation{
+
+  #define INTERVAL 2000L
+
+	event void Boot.booted() {
+    avr_init();
+    serial_init();
+    call LoopTimer.startPeriodic(INTERVAL * 250);
+  }
+  
+  task void tick() { _delay_ms(200); }
+
+  event void LoopTimer.fired() { post tick(); }
+}
+```
+
+The reporting component is trimmed down a bit:
+
+```c
+implementation {
+
+  #define REPORTING_INTERVAL 15000L
+
+  event void Boot.booted() {
+    clock_init();
+    call ReportingTimer.startPeriodic(REPORTING_INTERVAL * 250);
+  }
+  
+  task void report(void) {
+    _log("metrics: cycles: %lu (ev:%u us)\n",
+         cycles, (unsigned int)((clock_get_millis() * 1000.0) / cycles));
+  }
+  
+  event void ReportingTimer.fired() { post report();  }
+}
+```
+
+This gives the following result:
+
+<p align="center">
+<img src="media/loop-nesc.png">
+</p>
+
+Now, does that compute? The average event loop time is 496&mu;s. So that's about 2000 cycles per second. Every 2s, 200ms are added by the algorithm, or 100ms per second, which should compute to 50&mu;s. This seems again strange, because that would mean that about 450&mu;s would be due to the framework?!
+
 _More to come soon..._
