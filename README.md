@@ -190,7 +190,7 @@ If you now hook up the hardware to a serial to USB adapter and issue a screen to
 
 ### Greetings
 
-Oh, well, so far for the minimalistic approach. Let's add the network. The hardware I actually talked about before are the motes I designed for my master's thesis: the XT0F-004. It extends the previous very basic setup with an XBee ZigBee module (and a few LEDs, reset switch and a light sensor:
+Oh, well, so far for the minimalistic approach. Let's add the network. The hardware I actually talked about before are the motes I designed for my master's thesis: the XT0F-004. It extends the previous very basic setup with an XBee ZigBee module (and a few LEDs, reset switch and a light sensor):
 
 <p align="center">
 <img src="media/xt0f-004.jpg" width="724">
@@ -463,7 +463,7 @@ implementation{
 
 The extended information is about what you can get out of the XBee API. But XBee modules create a meshed network, mostly a tree-structure with each child propagating its frame to its parent, thus routing the messages through the network.
 
-XBee also doesn't provide access to raw frame information for frames sent between other nodes (aka promiscuous mode). And XBee's default broadcasting support is flawed - as soon as you send many packets, they get dropped due to a buffer overflow.
+XBee also doesn't provide access to raw frame information for frames sent between other nodes (aka promiscuous mode). And XBee's default broadcasting support is flawed - as soon as you send many packets, they get dropped due to a buffer overflow.
 
 To alleviate this in software, we could layer a component the solves all these problems, by implementing all communication using unicast messages, sending all messages to both parent and children - to simulate the promiscuous behavior - and adding additional information about the origin , destination and the hop taken in the meshed network.
 
@@ -664,7 +664,7 @@ The second algorithm is one that keeps a reputation score on other nodes. Thanks
 
 Besides the processing of all messages - to verify correct forwarding - the algorithm also exchanges  reputation information with other nodes in the network. This second-hand information is also taken into account. Such a reputation-exchange message consists of 10 bytes:
 
-<table width="100%>
+<table width="100%">
 <tr><th colspan="3">payload bytes</th></tr>
 <tr><th width="20%">0 - 1</th><th width="40%">2 - 5</th><th width="40%">5 - 9</th></tr>
 <tr><td>nw address</td><td>alpha param (float)</td><td>beta param (float)</td></tr>
@@ -884,6 +884,18 @@ section          size      addr
 <img src="media/metrics-reputation.png">
 </p>
 
+### Results Summary
+
+The following tables summarises all results from the 4 experiments shown above:
+
+<table width="100%">
+<tr><th></th><th>light</th><th colspan="2">heartbeat</th><th colspan="2">reputation</th><th colspan="2">both</th></tr>
+<tr align="right"><th>size (bytes)</th><td>11628</td><td>16198</td><td>139%</td><td>14306</td><td>123%</td><td>18676</td><td>161%</td></tr>
+<tr align="right"><th>frames&nbsp;sent</th><td>19</td><td>52</td><td>274%</td><td>35</td><td>184%</td><td>64</td><td>337%</td></tr>
+<tr align="right"><th>bytes&nbsp;sent</th><td>452</td><td>1922</td><td>425%</td><td>916</td><td>203%</td><td>2306</td><td>510%</td></tr>
+<tr align="right"><th>event&nbsp;loop&nbsp;(&mu;s)</th><td>95</td><td>103</td><td>108%</td><td>101</td><td>106%</td><td>116</td><td>122%</td></tr>
+</table>
+
 ### Puzzled...
 
 Ok, so now I have all data, let's see how this compares to my earlier manual and generated solutions. The following table gives an overview of the timings of the event loop. To determine the average duration of one event-loop iteration, every event loop iteration a counter is incremented. After 15 seconds have passed, this counter is used to determine the average time of one event loop.
@@ -1021,5 +1033,7 @@ This gives the following result:
 </p>
 
 Now, does that compute? The average event loop time is 496&mu;s. So that's about 2000 cycles per second. Every 2s, 200ms are added by the algorithm, or 100ms per second, which should compute to 50&mu;s. This seems again strange, because that would mean that about 450&mu;s would be due to the framework?!
+
+
 
 _More to come soon..._
