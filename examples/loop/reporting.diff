@@ -1,16 +1,31 @@
---- main.org.c	2015-05-24 00:10:43.000000000 +0200
-+++ main.c	2015-05-24 00:12:45.000000000 +0200
-@@ -2522,12 +2522,14 @@ static inline void SchedulerBasicP__Sche
-         {
-           while ((nextTask = SchedulerBasicP__popTask()) == SchedulerBasicP__NO_TASK) 
-             {
-+              cycles++;
-               SchedulerBasicP__McuSleep__sleep();
-             }
-         }
- #line 161
-         __nesc_atomic_end(__nesc_atomic); }
-       SchedulerBasicP__TaskBasic__runTask(nextTask);
+--- main.org.c	2015-05-25 22:33:43.000000000 +0200
++++ main.c	2015-05-25 22:34:15.000000000 +0200
+@@ -2518,16 +2518,19 @@ static inline void SchedulerBasicP__Sche
+     {
+       uint8_t nextTask;
+ 
+-      { __nesc_atomic_t __nesc_atomic = __nesc_atomic_start();
+-        {
+-          while ((nextTask = SchedulerBasicP__popTask()) == SchedulerBasicP__NO_TASK) 
+-            {
+-              SchedulerBasicP__McuSleep__sleep();
+-            }
+-        }
+-#line 161
+-        __nesc_atomic_end(__nesc_atomic); }
+-      SchedulerBasicP__TaskBasic__runTask(nextTask);
++//       { __nesc_atomic_t __nesc_atomic = __nesc_atomic_start();
++//         {
++//           while ((nextTask = SchedulerBasicP__popTask()) == SchedulerBasicP__NO_TASK)
++//             {
++//               SchedulerBasicP__McuSleep__sleep();
++//             }
++//         }
++// #line 161
++//         __nesc_atomic_end(__nesc_atomic); }
++      if((nextTask = SchedulerBasicP__popTask()) != SchedulerBasicP__NO_TASK) {
++        SchedulerBasicP__TaskBasic__runTask(nextTask);
++      }
 +      cycles++;
      }
  }

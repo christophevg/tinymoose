@@ -1034,6 +1034,44 @@ This gives the following result:
 
 Now, does that compute? The average event loop time is 496&mu;s. So that's about 2000 cycles per second. Every 2s, 200ms are added by the algorithm, or 100ms per second, which should compute to 50&mu;s. This seems again strange, because that would mean that about 450&mu;s would be due to the framework?!
 
+### I Can Use Some Sleep ;-)
 
+My initial idea to simply take into account the sleep-loop cycles, was straight up stupid. Let's revisit it and take another look at the event loop, after cleaning it up a bit more...
+
+```c
+static inline void taskLoop(void) {
+  for(;;) {
+    uint8_t nextTask;
+    while((nextTask = popTask()) == NO_TASK) {
+      cycles++;
+      sleep();
+    }
+    runTask(nextTask);
+    cycles++;
+  }
+}
+```
+
+The sleep loop shouldn't be treated like an event loop cycle, it should be removed, to allow comparison to the event loop of the other implementations. It should look like this:
+
+```c
+static inline void taskLoop(void) {
+  for(;;) {
+    uint8_t nextTask;
+    if((nextTask = popTask()) != NO_TASK) {
+      runTask(nextTask);
+    }
+    cycles++;
+  }
+}
+```
+
+Patching the loop experiment in this way, results in very different results:
+
+<p align="center">
+<img src="media/loop-nesc-nosleep.png">
+</p>
+
+In 60 seconds we have 30 delays of 200ms, or 6000ms, and 11.817.954 cycles. So on average we'll delay 0.5&mu;s, which would mean the framework overhead is 4.5&mu;s. That should more like it.
 
 _More to come soon..._
