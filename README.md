@@ -1194,7 +1194,7 @@ Initially more as a matter of uniformity, I started changing all these implement
 I updated the following functionality with the corresponding results:
 
 <table>
-<tr><th>part</th>         <th>event loop in (&mu;s)</th></tr>
+<tr><th>part</th>         <th>event loop (&mu;s)</th></tr>
 <tr><th>base case</th>    <td align="right">156</td></tr>
 <tr><th>xbee_receive</th> <td align="right">101</td></tr>
 <tr><th>reporting</th>    <td align="right">80</td></tr>
