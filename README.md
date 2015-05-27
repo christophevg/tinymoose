@@ -1143,4 +1143,71 @@ So to be at least a bit honest in the comparison of the absolute numbers, I have
 
 And really nobody questioned those numbers last year :-) Seems I'm not the only one who doesn't have a intuitive feeling about these absolute numbers.
 
+#### Timely Receiving
+
+Redesigning the invocations of `xbee_receive()` was done using a pattern already applied in all other implementations to schedule the heartbeats and reputation handling:
+
+```c
+  time_t now = clock_get_millis();
+  time_t next_receive = now;
+  while(TRUE) {
+    now = clock_get_millis();
+    ...
+    // process incoming packets
+    if( now >= next_receive ) {
+      xbee_receive();
+      next_receive += RECEIVE_INTERVAL;
+    }
+    ...
+  }
+```
+
+The results are okay, but not yet of the same order as the nesC results...
+
+<p align="center">
+<img src="media/manual-receive100ms.png">
+</p>
+
+#### Moving the Interval Checks Up
+
+Most other parts of the implementations, that in the nesC version are implemented using periodic timers, followed this pattern:
+
+```c
+void do_something_step() {
+  static next = 0;
+  if(next == 0) { next = clock_get_millis(); }
+  if(clock_get_millis() >= next) {
+    // do something
+    ...
+  }
+}
+
+while(TRUE) {
+  ...
+  do_something_step();
+  ...
+}
+```
+
+Initially more as a matter of uniformity, I started changing all these implementations to the same pattern applied for the receiving of messages. I first didn't think it would make much of a difference, since it was merely moving the time checking out of the function up to the level of the event loop.
+
+I updated the following functionality with the corresponding results:
+
+<table>
+<tr><th>part</th>         <th>event loop in (&mu;s)</th></tr>
+<tr><th>base case</th>    <td align="right">156</td></tr>
+<tr><th>xbee_receive</th> <td align="right">101</td></tr>
+<tr><th>reporting</th>    <td align="right">80</td></tr>
+<tr><th>heartbeat</th>    <td align="right">51</td></tr>
+<tr><th>reputation</th>   <td align="right">28</td></tr>
+<tr><th>light reading</th><td align="right">18</td></tr>
+<tr><th>continue</th>     <td align="right">17</td></tr>
+</table>
+
+<p align="center">
+<img src="media/manual-continue.png">
+</p>
+
+That's pretty close to the nesC scheduler :-) The last step adds `continue;` to the `if(now >= next_do_something) { ... }` execution part, to avoid multiple of those checks within one event loop cycle, which is basically also what happens per cycle with the nesC implementation, where only one task per cycle is handled.
+
 _More to come soon..._
