@@ -1074,4 +1074,73 @@ Patching the loop experiment in this way, results in very different results:
 
 In 60 seconds we have 30 delays of 200ms, or 6000ms, and 11.817.954 cycles. So on average we'll delay 0.5&mu;s, which would mean the framework overhead is 4.5&mu;s. That should more like it.
 
+### Step by Step
+
+So, what does this mean for the detection example?
+
+<p align="center">
+<img src="media/detection-all-nosleep.png">
+</p>
+
+Wow ... the event loop time has dropped to 14&mu;s ... with all algorithms active. Great, but that means there still is something not in sync between the different implementations. And there it is...
+
+The event loop of the manual/generated implementation looked like this:
+
+```c
+  while(TRUE) {
+    application_step();
+    
+#ifdef WITH_HEARTBEAT
+    xbee_receive();
+    measure(heartbeat_step(););
+#endif
+
+#ifdef WITH_REPUTATION
+    xbee_receive();
+    measure(reputation_step(););
+#endif
+
+    xbee_receive();
+    
+    report_metrics();
+  }
+
+  return(0);
+}
+```
+Every event loop iteration, `xbee_receive()` is called, at the time it seemed a good idea, just to make sure the latest messages would have been processed. Comparing both solutions with this identical message handling didn't suffer from this ... overload :-)
+
+Now compare that to the implementation I made for the `XBeeC` component:
+
+```c
+module XBeeC {
+  ...
+  uses interface Boot;
+  uses interface Timer<TMilli> as Timer0;
+}
+
+implementation {
+  ...
+  event void Boot.booted() {
+    ...
+    call Timer0.startPeriodic(100);
+    ...
+  }
+  ...
+  task void receive() {
+    xbee_receive();
+  }
+
+  event void Timer0.fired() {
+    post receive();
+  }
+}
+```
+
+That's one invocation of `xbee_receive()` every 100**ms**!!! Now we know that this way, we can reach event loop times of about 15&mu;s, or one invocation every 6666 event loop iterations :-)
+
+So to be at least a bit honest in the comparison of the absolute numbers, I have to change the receive handling in both the manual and generated implementations and rerun all tests.
+
+And really nobody questioned those numbers last year :-) Seems I'm not the only one who doesn't have a intuitive feeling about these absolute numbers.
+
 _More to come soon..._
