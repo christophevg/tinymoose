@@ -1072,7 +1072,7 @@ Patching the loop experiment in this way, results in very different results:
 <img src="media/loop-nesc-nosleep.png">
 </p>
 
-In 60 seconds we have 30 delays of 200ms, or 6000ms, and 11.817.954 cycles. So on average we'll delay 0.5&mu;s, which would mean the framework overhead is 4.5&mu;s. That should more like it.
+In 60 seconds we have 30 delays of 200ms, or 6000ms, and 11.817.954 cycles. So on average we'll delay 0.5&mu;s, which would mean the framework overhead is 4.5&mu;s. That sounds more like it.
 
 ### Step by Step
 
