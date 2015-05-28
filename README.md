@@ -1162,7 +1162,7 @@ Redesigning the invocations of `xbee_receive()` was done using a pattern already
   }
 ```
 
-The results are okay, but not yet of the same order as the nesC results...
+The results are okay, but not yet of the same order as the nesC results from 156&mu;s we're down to 101&mu;s:
 
 <p align="center">
 <img src="media/manual-receive100ms.png">
