@@ -888,6 +888,7 @@ section          size      addr
 
 The following tables summarises all results from the 4 experiments shown above:
 
+<center>
 <table width="100%">
 <tr><th></th><th>light</th><th colspan="2">heartbeat</th><th colspan="2">reputation</th><th colspan="2">both</th></tr>
 <tr align="right"><th>size (bytes)</th><td>11628</td><td>16198</td><td>139%</td><td>14306</td><td>123%</td><td>18676</td><td>161%</td></tr>
@@ -895,6 +896,7 @@ The following tables summarises all results from the 4 experiments shown above:
 <tr align="right"><th>bytes&nbsp;sent</th><td>452</td><td>1922</td><td>425%</td><td>916</td><td>203%</td><td>2306</td><td>510%</td></tr>
 <tr align="right"><th>event&nbsp;loop&nbsp;(&mu;s)</th><td>95</td><td>103</td><td>108%</td><td>101</td><td>106%</td><td>116</td><td>122%</td></tr>
 </table>
+</center>
 
 ### Puzzled...
 
@@ -902,6 +904,7 @@ Ok, so now I have all data, let's see how this compares to my earlier manual and
 
 This way, I've computed the time for a completely manual case, a case where the code was generated and used a framework and now the result of nesC. The tabel starts with the base case: a simple light sensing application, next with additional heartbeat, with reputation and with both. In each case the `+` column shows what the additional algorithm _seems_ to add. The `theory` column computes the theoretical duration, and its correseponding `+` column shows the additional overhead of the actual time computed for both algorithms, also expressed as a relative value.
 
+<center>
 <table>
 <tr><th colspan="11">Event Loop, average, in &mu;s</th></tr>
 <tr><th></th><th>light</th><th>hb</th><th>+</th><th>rep</th><th>+</th><th>both</th><th>+</th><th>theory</th><th>+</th><th>%</th></tr>
@@ -909,6 +912,7 @@ This way, I've computed the time for a completely manual case, a case where the 
 <tr align="right"><th>generated</th><td>48</td><td>121</td><td>73</td><td>121</td><td>73</td><td>138</td><td>90</td><td>194</td><td>-56</td><td>-29%</td></tr>
 <tr align="right"><th>nesc</th><td>95</td><td>103</td><td>8</td><td>101</td><td>6</td><td>116</td><td>21</td><td>109</td><td>7</td><td>6%</td></tr>
 </table>
+</center>
 
 Some initial observations:
 
@@ -1162,7 +1166,7 @@ Redesigning the invocations of `xbee_receive()` was done using a pattern already
   }
 ```
 
-The results are okay, but not yet of the same order as the nesC results from 156&mu;s we're down to 101&mu;s:
+The results are okay, but not yet of the same order as the nesC results from 149&mu;s we're down to 101&mu;s:
 
 <p align="center">
 <img src="media/manual-receive100ms.png">
@@ -1193,21 +1197,23 @@ Initially more as a matter of uniformity, I started changing all these implement
 
 I updated the following functionality with the corresponding results:
 
+<center>
 <table>
-<tr><th>part</th>         <th>event loop (&mu;s)</th></tr>
-<tr><th>base case</th>    <td align="right">156</td></tr>
-<tr><th>xbee_receive</th> <td align="right">101</td></tr>
-<tr><th>reporting</th>    <td align="right">80</td></tr>
-<tr><th>heartbeat</th>    <td align="right">51</td></tr>
-<tr><th>reputation</th>   <td align="right">28</td></tr>
-<tr><th>light reading</th><td align="right">18</td></tr>
-<tr><th>continue</th>     <td align="right">17</td></tr>
+<tr><th>part</th>         <th>event loop (&mu;s)</th> <th>rel. to base case</th></tr>
+<tr><th>base case</th>    <td align="right">149</td>  <td align="right"></td></tr>
+<tr><th>xbee_receive</th> <td align="right">101</td>  <td align="right">-32%</td></tr>
+<tr><th>reporting</th>    <td align="right">80</td>   <td align="right">-46%</td></tr>
+<tr><th>heartbeat</th>    <td align="right">51</td>   <td align="right">-66%</td></tr>
+<tr><th>reputation</th>   <td align="right">28</td>   <td align="right">-81%</td></tr>
+<tr><th>light reading</th><td align="right">18</td>   <td align="right">-88%</td></tr>
+<tr><th>continue</th>     <td align="right">17</td>   <td align="right">-89%</td></tr>
 </table>
+</center>
 
 <p align="center">
 <img src="media/manual-continue.png">
 </p>
 
-That's pretty close to the nesC scheduler :-) The last step adds `continue;` to the `if(now >= next_do_something) { ... }` execution part, to avoid multiple of those checks within one event loop cycle, which is basically also what happens per cycle with the nesC implementation, where only one task per cycle is handled.
+That's pretty close to the nesC scheduler :-) The last step adds `continue;` to the `if(now >= next_do_something) { ... }` execution part, to avoid multiple of those checks within one event loop cycle, which is basically also what happens per cycle with the nesC implementation, where only one task per cycle is handled. If of course none of the checks trigger activity, all checks are performed, still penalising the idle loop. With a more intelligent scheduling mechanism, this can be reduced to one check, which will probably shave of the last difference to the nesC implementation.
 
 _More to come soon..._
